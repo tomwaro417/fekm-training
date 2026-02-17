@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MODÈLES D'AUTHENTIFICATION
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // Pour l'authentification credentials
+  role          UserRole  @default(STUDENT)
+  beltId        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  progress      UserTechniqueProgress[]
+  videos        UserTechniqueVideo[]
+  belt          Belt?     @relation(fields: [beltId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// MODÈLES MÉTIER FEKM
+// ============================================
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+model Belt {
+  id          String   @id @default(cuid())
+  name        String   @unique // JAUNE, ORANGE, VERTE, BLEUE, MARRON, NOIRE_1
+  color       String   // Code couleur hex pour l'affichage
+  order       Int      // Ordre d'apparition (1-6)
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  content  BeltContent?
+  modules  Module[]
+  users    User[]
+}
+
+model BeltContent {
+  id          String   @id @default(cuid())
+  beltId      String   @unique
+  examRequirements String? @db.Text // Conditions du passage
+  principles  String?  @db.Text    // Principes généraux
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation
+  belt Belt @relation(fields: [beltId], references: [id], onDelete: Cascade)
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  beltId      String
+  code        String   // Ex: UV1, UV2, etc.
+  name        String
+  description String?  @db.Text
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  belt       Belt        @relation(fields: [beltId], references: [id], onDelete: Cascade)
+  techniques Technique[]
+}
+
+model Technique {
+  id            String   @id @default(cuid())
+  moduleId      String
+  name          String
+  category      TechniqueCategory
+  subCategory   String?  // Sous-catégorie spécifique
+  description   String?  @db.Text
+  instructions  String?  @db.Text // Instructions détaillées
+  keyPoints     String[] // Points clés à retenir
+  order         Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  module   Module                @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress UserTechniqueProgress[]
+  videos   TechniqueVideoLink[]
+}
+
+enum TechniqueCategory {
+  FRAPPE_DE_FACE
+  FRAPPE_DE_COTE
+  SAISISSEMENTS
+  DEFENSES_SUR_ATTAQUES_PONCTUELLES
+  STRANGULATIONS
+  DEFENSES_SUR_ATTAQUES_CIRCULAIRES
+  ATTAQUES_AU_SOL
+  ATTAQUES_AVEC_ARMES_BLANCHES
+  ATTAQUES_AVEC_BATON
+  ATTAQUES_AVEC_ARMES_A_FEU
+  AUTRES
+}
+
+model UserTechniqueProgress {
+  id          String           @id @default(cuid())
+  userId      String
+  techniqueId String
+  level       ProgressLevel    @default(NON_ACQUIS)
+  notes       String?          @db.Text
+  lastUpdated DateTime         @updatedAt
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  technique Technique @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, techniqueId])
+}
+
+enum ProgressLevel {
+  NON_ACQUIS      // 0 - Non acquis
+  EN_COURS_DAPPRENTISSAGE // 1 - En cours d'apprentissage
+  ACQUIS          // 2 - Acquis
+  MAITRISE        // 3 - Maîtrisé
+}
+
+// ============================================
+// MODÈLES VIDÉO
+// ============================================
+
+model VideoAsset {
+  id          String   @id @default(cuid())
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String   // Chemin relatif dans uploads/
+  duration    Int?     // Durée en secondes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  techniqueLinks TechniqueVideoLink[]
+  userVideos     UserTechniqueVideo[]
+}
+
+model TechniqueVideoLink {
+  id          String   @id @default(cuid())
+  techniqueId String
+  videoId     String
+  type        VideoType // COACH ou DEMONSTRATION
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  technique Technique  @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+  video     VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([techniqueId, videoId])
+}
+
+enum VideoType {
+  COACH          // Vidéo du coach/instructeur
+  DEMONSTRATION  // Démonstration officielle
+}
+
+model UserTechniqueVideo {
+  id          String   @id @default(cuid())
+  userId      String
+  techniqueId String
+  videoId     String
+  slot        UserVideoSlot // DEBUTANT ou PROGRESSION
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  technique Technique  @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+  video     VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, techniqueId, slot])
+}
+
+enum UserVideoSlot {
+  DEBUTANT    // Premier slot - niveau débutant
+  PROGRESSION // Deuxième slot - progression
+}
