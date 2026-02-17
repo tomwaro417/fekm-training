@@ -2,6 +2,27 @@
 
 Application web complète pour le suivi de progression des techniques de Krav Maga FEKM (Fédération Européenne de Krav Maga).
 
+## 🚀 Installation Rapide (Docker)
+
+La méthode la plus simple pour tester l'application en local :
+
+```bash
+# 1. Cloner
+git clone https://github.com/tomwaro417/fekm-training.git
+cd fekm-training
+
+# 2. Lancer avec Docker
+docker compose up --build -d
+
+# 3. Attendre 2-3 minutes...
+
+# 4. Ouvrir http://localhost:3000
+```
+
+📖 **Guide d'installation détaillé** : voir [INSTALL.md](./INSTALL.md)
+
+---
+
 ## ✨ Fonctionnalités
 
 ### Pour les pratiquants

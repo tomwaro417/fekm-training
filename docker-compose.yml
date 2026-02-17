@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: fekm-postgres
+    environment:
+      POSTGRES_USER: fekm
+      POSTGRES_PASSWORD: fekm123
+      POSTGRES_DB: fekm
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fekm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Application Next.js
+  app:
+    build: .
+    container_name: fekm-app
+    environment:
+      # Database
+      DATABASE_URL: postgresql://fekm:fekm123@postgres:5432/fekm
+      # NextAuth
+      NEXTAUTH_SECRET: your-secret-key-change-this-in-production
+      NEXTAUTH_URL: http://localhost:3000
+      # Google OAuth (optionnel - remplacer par vos valeurs)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      # App
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
