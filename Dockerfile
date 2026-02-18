@@ -7,6 +7,9 @@ RUN apk add --no-cache libc6-compat openssl
 # Créer le répertoire de travail
 WORKDIR /app
 
+# Créer le dossier uploads pour les vidéos
+RUN mkdir -p uploads/videos
+
 # Copier les fichiers de configuration
 COPY package.json pnpm-workspace.yaml ./
 COPY prisma ./prisma/
