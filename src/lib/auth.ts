@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
-            beltId: user.beltId,
+            beltId: user.beltId ?? undefined,
             beltName: user.belt?.name,
           }
         } catch {
