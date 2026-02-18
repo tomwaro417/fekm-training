@@ -66,7 +66,7 @@ pct create $CTID "/var/lib/vz/template/cache/$TEMPLATE" \
     --storage local-lvm \
     --memory 2048 \
     --cores 2 \
-    --rootfs 16G \
+    --rootfs local-lvm:16 \
     --net0 "$NET_CONFIG" \
     --unprivileged 1 \
     --features nesting=1,keyctl=1 \
@@ -96,15 +96,18 @@ pct exec $CTID -- bash -c '
 set -e
 export DEBIAN_FRONTEND=noninteractive
 
-# Mise à jour
+# Mise à jour et dépendances essentielles
 apt-get update && apt-get upgrade -y
+apt-get install -y ca-certificates curl gnupg git lsb-release
 
 # Docker
-apt-get install -y ca-certificates curl gnupg git
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Ajouter le repo Docker (utiliser bookworm car lsb_release est maintenant disponible)
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 systemctl enable --now docker
@@ -116,13 +119,13 @@ git clone https://github.com/tomwaro417/fekm-training.git
 cd fekm-training
 
 # Env
-cat > .env << EOF
+cat > .env << ENV_EOF
 DATABASE_URL=postgresql://fekm:fekm123@postgres:5432/fekm
 NEXTAUTH_SECRET=$(openssl rand -hex 32)
 NEXTAUTH_URL=http://localhost:3000
 NEXT_PUBLIC_APP_NAME=FEKM Training
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-EOF
+ENV_EOF
 
 # Démarrer
 docker compose up --build -d
