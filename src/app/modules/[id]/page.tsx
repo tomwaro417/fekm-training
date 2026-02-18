@@ -75,7 +75,7 @@ export default function ModuleDetailPage() {
 
       // Charger la progression
       const progressRes = await fetch(`/api/modules/${params.id}/progress`);
-      let progressData = {};
+      let progressData: Record<string, string> = {};
       if (progressRes.ok) {
         progressData = await progressRes.json();
       }
