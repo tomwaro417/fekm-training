@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 
-// GET /api/belts - Liste toutes les ceintures
+// GET /api/belts - Liste toutes les ceintures (public)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
-    }
-
     const belts = await prisma.belt.findMany({
       orderBy: { order: 'asc' },
       include: {
