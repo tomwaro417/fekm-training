@@ -134,6 +134,7 @@ model Technique {
   module   Module                @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   progress UserTechniqueProgress[]
   videos   TechniqueVideoLink[]
+  userVideos UserTechniqueVideo[]  // Relation inverse ajoutée
 }
 
 enum TechniqueCategory {
