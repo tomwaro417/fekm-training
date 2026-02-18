@@ -17,6 +17,9 @@ RUN npm install -g pnpm
 # Installer les dépendances
 RUN pnpm install
 
+# Installer tsx globalement pour le seed
+RUN npm install -g tsx
+
 # Générer le client Prisma
 RUN npx prisma generate
 
@@ -33,5 +36,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Commande de démarrage (sans seed qui nécessite tsx)
-CMD ["sh", "-c", "npx prisma migrate deploy && pnpm start"]
+# Commande de démarrage avec seed
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && pnpm start"]
