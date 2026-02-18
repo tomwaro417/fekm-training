@@ -9,6 +9,7 @@ WORKDIR /app
 
 # Copier les fichiers de configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY prisma.config.ts ./
 COPY prisma ./prisma/
 
 # Installer pnpm
@@ -17,7 +18,7 @@ RUN npm install -g pnpm
 # Installer les dépendances
 RUN pnpm install --frozen-lockfile
 
-# Générer le client Prisma (sans besoin de DB, juste le schéma)
+# Générer le client Prisma (avec config Prisma 7)
 RUN npx prisma generate
 
 # Copier tout le projet
