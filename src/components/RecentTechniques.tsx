@@ -13,6 +13,7 @@ interface RecentTechniquesProps {
       module: {
         code: string
         belt: {
+          id: string
           name: string
           color: string
         }
