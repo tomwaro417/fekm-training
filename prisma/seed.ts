@@ -1,4 +1,4 @@
-import { PrismaClient, ProgressLevel, UserRole, VideoType } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -256,6 +256,7 @@ const techniquesData: Record<string, Record<string, Array<{ name: string; catego
 async function main() {
   console.log('🌱 Démarrage du seed...')
 
+  // Clean existing data
   await prisma.userTechniqueVideo.deleteMany()
   await prisma.techniqueVideoLink.deleteMany()
   await prisma.videoAsset.deleteMany()
@@ -300,14 +301,23 @@ async function main() {
     }
   }
 
-  // Utilisateur admin
-  const hashedPassword = await bcrypt.hash('admin123', 10)
   const yellowBelt = await prisma.belt.findUnique({ where: { name: 'JAUNE' } })
-  
+
+  // Compte DEMO (pour tester)
+  await prisma.user.create({
+    data: {
+      email: 'demo@fekm.com', name: 'Démo Utilisateur',
+      password: await bcrypt.hash('demo123', 10), role: 'STUDENT',
+      beltId: yellowBelt?.id,
+    },
+  })
+  console.log('👤 Compte DEMO créé (demo@fekm.com / demo123)')
+
+  // Utilisateur admin
   await prisma.user.create({
     data: {
       email: 'admin@fekm.fr', name: 'Administrateur',
-      password: hashedPassword, role: 'ADMIN',
+      password: await bcrypt.hash('admin123', 10), role: 'ADMIN',
       beltId: yellowBelt?.id,
     },
   })
@@ -324,6 +334,11 @@ async function main() {
   console.log('👤 Utilisateur élève créé (eleve@fekm.fr / eleve123)')
 
   console.log('✅ Seed terminé avec succès!')
+  console.log('')
+  console.log('🔑 Comptes de test :')
+  console.log('  - demo@fekm.com / demo123')
+  console.log('  - admin@fekm.fr / admin123')
+  console.log('  - eleve@fekm.fr / eleve123')
 }
 
 main()
