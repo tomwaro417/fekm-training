@@ -14,7 +14,7 @@ COPY prisma ./prisma/
 # Installer pnpm
 RUN npm install -g pnpm
 
-# Installer les dépendances (sans frozen-lockfile car lockfile supprimé)
+# Installer les dépendances
 RUN pnpm install
 
 # Générer le client Prisma
@@ -33,5 +33,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Commande de démarrage
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && pnpm start"]
+# Commande de démarrage (sans seed qui nécessite tsx)
+CMD ["sh", "-c", "npx prisma migrate deploy && pnpm start"]
