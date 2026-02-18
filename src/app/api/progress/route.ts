@@ -38,7 +38,24 @@ export async function GET(request: NextRequest) {
         },
         include: {
           technique: {
-            select: { id: true, name: true, category: true, moduleId: true },
+            select: { 
+              id: true, 
+              name: true, 
+              category: true, 
+              moduleId: true,
+              module: {
+                select: {
+                  code: true,
+                  belt: {
+                    select: {
+                      id: true,
+                      name: true,
+                      color: true,
+                    }
+                  }
+                }
+              }
+            },
           },
         },
       })
@@ -59,7 +76,23 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         technique: {
-          select: { id: true, name: true, category: true },
+          select: { 
+            id: true, 
+            name: true, 
+            category: true,
+            module: {
+              select: {
+                code: true,
+                belt: {
+                  select: {
+                    id: true,
+                    name: true,
+                    color: true,
+                  }
+                }
+              }
+            }
+          },
         },
       },
     })
