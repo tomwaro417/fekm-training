@@ -36,5 +36,5 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Commande de démarrage avec seed
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && pnpm start"]
+# Commande de démarrage avec db push et seed
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && pnpm start"]
