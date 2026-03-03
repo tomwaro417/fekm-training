@@ -24,25 +24,23 @@ interface Belt {
   color: string;
 }
 
-type TechniqueCategory = 
-  | 'FRAPPE_DE_FACE'
-  | 'FRAPPE_DE_COTE'
-  | 'SAISISSEMENTS'
-  | 'DEFENSES_SUR_ATTAQUES_PONCTUELLES'
-  | 'STRANGULATIONS'
-  | 'DEFENSES_SUR_ATTAQUES_CIRCULAIRES'
-  | 'ATTAQUES_AU_SOL'
-  | 'ATTAQUES_AVEC_ARMES_BLANCHES'
-  | 'ATTAQUES_AVEC_BATON'
-  | 'ATTAQUES_AVEC_ARMES_A_FEU'
-  | 'AUTRES';
+enum TechniqueCategory {
+  FRAPPE = 'FRAPPE',
+  DEFENSE = 'DEFENSE',
+  PROJECTION = 'PROJECTION',
+  CLE = 'CLE',
+  AU_SOL = 'AU_SOL',
+  ARME_BLANCHE = 'ARME_BLANCHE',
+  ARME_A_FEU = 'ARME_A_FEU',
+  DEFENSE_SUR_LE_SOL = 'DEFENSE_SUR_LE_SOL',
+}
 
 interface Technique {
   id: string;
   name: string;
   category: TechniqueCategory;
-  description: string | null;
-  instructions: string | null;
+  description: string;
+  instructions: string;
   keyPoints: string[];
   order: number;
   _count: {
@@ -54,7 +52,7 @@ interface Module {
   id: string;
   code: string;
   name: string;
-  description: string | null;
+  description: string;
   belt: Belt;
   techniques: Technique[];
 }
@@ -77,34 +75,28 @@ const getBeltName = (name: string): string => {
 
 const getCategoryLabel = (category: TechniqueCategory): string => {
   const labels: Record<TechniqueCategory, string> = {
-    'FRAPPE_DE_FACE': 'Frappe de face',
-    'FRAPPE_DE_COTE': 'Frappe de côté',
-    'SAISISSEMENTS': 'Saisies',
-    'DEFENSES_SUR_ATTAQUES_PONCTUELLES': 'Défenses ponctuelles',
-    'STRANGULATIONS': 'Étranglements',
-    'DEFENSES_SUR_ATTAQUES_CIRCULAIRES': 'Défenses circulaires',
-    'ATTAQUES_AU_SOL': 'Techniques au sol',
-    'ATTAQUES_AVEC_ARMES_BLANCHES': 'Armes blanches',
-    'ATTAQUES_AVEC_BATON': 'Bâton',
-    'ATTAQUES_AVEC_ARMES_A_FEU': 'Armes à feu',
-    'AUTRES': 'Autres',
+    'FRAPPE': 'Frappe',
+    'DEFENSE': 'Défense',
+    'PROJECTION': 'Projection',
+    'CLE': 'Clé',
+    'AU_SOL': 'Au sol',
+    'ARME_BLANCHE': 'Arme blanche',
+    'ARME_A_FEU': 'Arme à feu',
+    'DEFENSE_SUR_LE_SOL': 'Défense au sol',
   };
   return labels[category] || category;
 };
 
 const getCategoryColor = (category: TechniqueCategory): { bg: string; text: string; border: string } => {
   const colors: Record<TechniqueCategory, { bg: string; text: string; border: string }> = {
-    'FRAPPE_DE_FACE': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-    'FRAPPE_DE_COTE': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
-    'SAISISSEMENTS': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-    'DEFENSES_SUR_ATTAQUES_PONCTUELLES': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-    'STRANGULATIONS': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-    'DEFENSES_SUR_ATTAQUES_CIRCULAIRES': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
-    'ATTAQUES_AU_SOL': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-    'ATTAQUES_AVEC_ARMES_BLANCHES': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
-    'ATTAQUES_AVEC_BATON': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
-    'ATTAQUES_AVEC_ARMES_A_FEU': { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300' },
-    'AUTRES': { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200' },
+    'FRAPPE': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    'DEFENSE': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    'PROJECTION': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    'CLE': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+    'AU_SOL': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'ARME_BLANCHE': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
+    'ARME_A_FEU': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    'DEFENSE_SUR_LE_SOL': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
   };
   return colors[category] || { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' };
 };
@@ -158,7 +150,7 @@ function NotFoundState() {
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Module non trouvé</h2>
         <p className="text-gray-600 mb-6">
-          Le module que vous recherchez n&apos;existe pas ou a été supprimé.
+          Le module que vous recherchez n'existe pas ou a été supprimé.
         </p>
         <Link
           href="/ceintures"
