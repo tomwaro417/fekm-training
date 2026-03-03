@@ -2,23 +2,34 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { withRateLimit } from '@/lib/rate-limit'
+import { idSchema } from '@/lib/validation'
+import { createErrorResponse, handleZodError, logError, logWarning } from '@/lib/error-handler'
+import { ZodError } from 'zod'
 
 // GET /api/techniques/[id] - Détail d'une technique
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Vérification de l'authentification
     const session = await getServerSession(authOptions)
     if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      logWarning('GET /api/techniques/[id]', 'Tentative d\'accès non autorisé', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+      })
+      return createErrorResponse('UNAUTHORIZED', 401)
     }
 
     const { id } = await params
+    
+    // Validation de l'ID
+    const validatedId = idSchema.parse(id)
     const userId = session.user.id
 
     const technique = await prisma.technique.findUnique({
-      where: { id },
+      where: { id: validatedId },
       include: {
         module: {
           include: {
@@ -39,17 +50,14 @@ export async function GET(
     })
 
     if (!technique) {
-      return NextResponse.json(
-        { error: 'Technique non trouvée' },
-        { status: 404 }
-      )
+      return createErrorResponse('NOT_FOUND', 404)
     }
 
     // Récupérer les vidéos personnelles de l'utilisateur
     const userVideos = await prisma.userTechniqueVideo.findMany({
       where: {
         userId,
-        techniqueId: id,
+        techniqueId: validatedId,
       },
       include: {
         video: true,
@@ -61,10 +69,14 @@ export async function GET(
       userVideos,
     })
   } catch (error) {
-    console.error('Erreur GET /api/techniques/[id]:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération de la technique' },
-      { status: 500 }
-    )
+    if (error instanceof ZodError) {
+      return handleZodError(error)
+    }
+    
+    logError('GET /api/techniques/[id]', error, { params: await params.catch(() => 'unknown') })
+    return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error)
   }
 }
+
+// Export avec rate limiting: 100 requêtes/minute pour GET
+export const GET = withRateLimit(getHandler, { method: 'GET', max: 100 })

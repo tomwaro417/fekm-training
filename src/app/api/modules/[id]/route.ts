@@ -1,15 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { withRateLimit } from '@/lib/rate-limit'
+import { idSchema } from '@/lib/validation'
+import { createErrorResponse, handleZodError, logError, logWarning } from '@/lib/error-handler'
+import { ZodError } from 'zod'
 
-export async function GET(
+// GET /api/modules/[id] - Détail d'un module avec ses techniques
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    // Vérification de l'authentification
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      logWarning('GET /api/modules/[id]', 'Tentative d\'accès non autorisé', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+      })
+      return createErrorResponse('UNAUTHORIZED', 401)
+    }
+
+    const { id } = await params
     
+    // Validation de l'ID
+    const validatedId = idSchema.parse(id)
+
     const module = await prisma.module.findUnique({
-      where: { id },
+      where: { id: validatedId },
       include: {
         belt: {
           select: {
@@ -34,18 +53,19 @@ export async function GET(
     });
 
     if (!module) {
-      return NextResponse.json(
-        { error: 'Module not found' },
-        { status: 404 }
-      );
+      return createErrorResponse('NOT_FOUND', 404)
     }
 
     return NextResponse.json(module);
   } catch (error) {
-    console.error('Error fetching module:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch module' },
-      { status: 500 }
-    );
+    if (error instanceof ZodError) {
+      return handleZodError(error)
+    }
+    
+    logError('GET /api/modules/[id]', error, { params: await params.catch(() => 'unknown') })
+    return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error)
   }
 }
+
+// Export avec rate limiting: 100 requêtes/minute pour GET
+export const GET = withRateLimit(getHandler, { method: 'GET', max: 100 })

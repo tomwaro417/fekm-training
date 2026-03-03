@@ -3,384 +3,426 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, BookOpen, Play, CheckCircle, Target, Upload, X } from 'lucide-react';
+import { 
+  BookOpen, 
+  ChevronLeft, 
+  Trophy, 
+  Target,
+  Play,
+  FileText,
+  ChevronRight,
+  AlertCircle
+} from 'lucide-react';
+
+// ============================================
+// TYPES
+// ============================================
+
+interface Belt {
+  id: string;
+  name: string;
+  color: string;
+}
+
+enum TechniqueCategory {
+  FRAPPE = 'FRAPPE',
+  DEFENSE = 'DEFENSE',
+  PROJECTION = 'PROJECTION',
+  CLE = 'CLE',
+  AU_SOL = 'AU_SOL',
+  ARME_BLANCHE = 'ARME_BLANCHE',
+  ARME_A_FEU = 'ARME_A_FEU',
+  DEFENSE_SUR_LE_SOL = 'DEFENSE_SUR_LE_SOL',
+}
 
 interface Technique {
   id: string;
   name: string;
-  description: string | null;
-  instructions: string | null;
+  category: TechniqueCategory;
+  description: string;
+  instructions: string;
   keyPoints: string[];
-  category: string;
   order: number;
-  progress?: 'NON_ACQUIS' | 'EN_COURS_DAPPRENTISSAGE' | 'ACQUIS' | 'MAITRISE';
-  videos?: { id: string; slot: 'DEBUTANT' | 'PROGRESSION' }[];
+  _count: {
+    videos: number;
+  };
 }
 
 interface Module {
   id: string;
   code: string;
   name: string;
-  description: string | null;
-  belt: {
-    id: string;
-    name: string;
-    color: string;
-  };
+  description: string;
+  belt: Belt;
   techniques: Technique[];
 }
 
-type ProgressLevel = 'NON_ACQUIS' | 'EN_COURS_DAPPRENTISSAGE' | 'ACQUIS' | 'MAITRISE';
+// ============================================
+// HELPERS
+// ============================================
 
-const categoryLabels: Record<string, string> = {
-  'FRAPPE_DE_FACE': 'Frappe de face',
-  'FRAPPE_DE_COTE': 'Frappe de côté',
-  'SAISISSEMENTS': 'Saisies',
-  'DEFENSES_SUR_ATTAQUES_PONCTUELLES': 'Défenses ponctuelles',
-  'STRANGULATIONS': 'Étranglements',
-  'DEFENSES_SUR_ATTAQUES_CIRCULAIRES': 'Défenses circulaires',
-  'ATTAQUES_AU_SOL': 'Techniques au sol',
-  'ATTAQUES_AVEC_ARMES_BLANCHES': 'Armes blanches',
-  'ATTAQUES_AVEC_BATON': 'Bâton',
-  'ATTAQUES_AVEC_ARMES_A_FEU': 'Armes à feu',
-  'AUTRES': 'Autres',
+const getBeltName = (name: string): string => {
+  const names: Record<string, string> = {
+    'JAUNE': 'Ceinture Jaune',
+    'ORANGE': 'Ceinture Orange',
+    'VERTE': 'Ceinture Verte',
+    'BLEUE': 'Ceinture Bleue',
+    'MARRON': 'Ceinture Marron',
+    'NOIRE_1': 'Ceinture Noire 1er Darga',
+  };
+  return names[name] || name;
 };
 
-const progressLabels: Record<ProgressLevel, { label: string; color: string; bg: string }> = {
-  'NON_ACQUIS': { label: 'Pas encore vu', color: 'text-gray-600', bg: 'bg-gray-100' },
-  'EN_COURS_DAPPRENTISSAGE': { label: 'Vu', color: 'text-blue-600', bg: 'bg-blue-100' },
-  'ACQUIS': { label: 'Connais', color: 'text-yellow-600', bg: 'bg-yellow-100' },
-  'MAITRISE': { label: 'Maîtrise', color: 'text-green-600', bg: 'bg-green-100' },
+const getCategoryLabel = (category: TechniqueCategory): string => {
+  const labels: Record<TechniqueCategory, string> = {
+    'FRAPPE': 'Frappe',
+    'DEFENSE': 'Défense',
+    'PROJECTION': 'Projection',
+    'CLE': 'Clé',
+    'AU_SOL': 'Au sol',
+    'ARME_BLANCHE': 'Arme blanche',
+    'ARME_A_FEU': 'Arme à feu',
+    'DEFENSE_SUR_LE_SOL': 'Défense au sol',
+  };
+  return labels[category] || category;
 };
+
+const getCategoryColor = (category: TechniqueCategory): { bg: string; text: string; border: string } => {
+  const colors: Record<TechniqueCategory, { bg: string; text: string; border: string }> = {
+    'FRAPPE': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    'DEFENSE': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+    'PROJECTION': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+    'CLE': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+    'AU_SOL': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'ARME_BLANCHE': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
+    'ARME_A_FEU': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
+    'DEFENSE_SUR_LE_SOL': { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  };
+  return colors[category] || { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' };
+};
+
+// ============================================
+// COMPONENTS
+// ============================================
+
+function LoadingState() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div 
+          className="animate-spin rounded-full h-12 w-12 border-b-2"
+          style={{ borderColor: '#FFD700' }}
+        />
+        <p className="text-gray-500 text-sm">Chargement du module...</p>
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="w-8 h-8 text-red-600" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Erreur</h2>
+        <p className="text-gray-600 mb-6">{message}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white font-medium rounded-xl hover:bg-gray-800 transition-colors"
+          >
+            Réessayer
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NotFoundState() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Target className="w-8 h-8 text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Module non trouvé</h2>
+        <p className="text-gray-600 mb-6">
+          Le module que vous recherchez n'existe pas ou a été supprimé.
+        </p>
+        <Link
+          href="/ceintures"
+          className="inline-flex items-center justify-center px-6 py-3 bg-yellow-500 text-gray-900 font-bold rounded-xl hover:bg-yellow-400 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5 mr-2" />
+          Retour aux ceintures
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MAIN PAGE
+// ============================================
 
 export default function ModuleDetailPage() {
   const params = useParams();
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
-  const [showVideoModal, setShowVideoModal] = useState<string | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<'DEBUTANT' | 'PROGRESSION'>('DEBUTANT');
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchModule = async () => {
+    if (!params.id) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/modules/${params.id}`);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setModule(null);
+          return;
+        }
+        throw new Error('Erreur lors du chargement du module');
+      }
+
+      const data = await response.json();
+      setModule(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (params.id) {
-      loadData();
-    }
+    fetchModule();
   }, [params.id]);
 
-  async function loadData() {
-    try {
-      // Charger le module
-      const moduleRes = await fetch(`/api/modules/${params.id}`);
-      const moduleData = await moduleRes.json();
-
-      // Charger la progression
-      const progressRes = await fetch(`/api/modules/${params.id}/progress`);
-      let progressData: Record<string, string> = {};
-      if (progressRes.ok) {
-        progressData = await progressRes.json();
-      }
-
-      // Fusionner les données
-      const techniquesWithProgress = moduleData.techniques.map((t: Technique) => ({
-        ...t,
-        progress: progressData[t.id] || 'NON_ACQUIS',
-      }));
-
-      setModule({ ...moduleData, techniques: techniquesWithProgress });
-      setLoading(false);
-    } catch (error) {
-      console.error('Erreur chargement:', error);
-      setLoading(false);
-    }
-  }
-
-  async function updateProgress(techniqueId: string, level: ProgressLevel) {
-    setUpdating(techniqueId);
-    try {
-      const res = await fetch(`/api/modules/${params.id}/progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ techniqueId, level }),
-      });
-
-      if (res.ok) {
-        // Mettre à jour localement
-        setModule(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            techniques: prev.techniques.map(t =>
-              t.id === techniqueId ? { ...t, progress: level } : t
-            ),
-          };
-        });
-      }
-    } catch (error) {
-      console.error('Erreur mise à jour:', error);
-    }
-    setUpdating(null);
-  }
-
-  async function uploadVideo(techniqueId: string, file: File, slot: 'DEBUTANT' | 'PROGRESSION') {
-    const formData = new FormData();
-    formData.append('video', file);
-    formData.append('techniqueId', techniqueId);
-    formData.append('slot', slot);
-
-    try {
-      const res = await fetch('/api/videos/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.ok) {
-        setShowVideoModal(null);
-        loadData(); // Recharger pour voir la vidéo
-      }
-    } catch (error) {
-      console.error('Erreur upload:', error);
-    }
-  }
-
+  // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
-  if (!module) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-600">Module non trouvé</p>
-      </div>
-    );
+  // Error state
+  if (error) {
+    return <ErrorState message={error} onRetry={fetchModule} />;
   }
+
+  // Not found state
+  if (!module) {
+    return <NotFoundState />;
+  }
+
+  const beltColor = module.belt.color;
+  const sortedTechniques = [...module.techniques].sort((a, b) => a.order - b.order);
+  const totalVideos = sortedTechniques.reduce((sum, t) => sum + t._count.videos, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back link */}
-        <Link 
-          href={`/ceintures/${module.belt.id}`}
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8"
-        >
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          Retour à {module.belt.name === 'JAUNE' ? 'la ceinture Jaune' : 
-                    module.belt.name === 'ORANGE' ? 'la ceinture Orange' :
-                    module.belt.name === 'VERTE' ? 'la ceinture Verte' :
-                    module.belt.name === 'BLEUE' ? 'la ceinture Bleue' :
-                    module.belt.name === 'MARRON' ? 'la ceinture Marron' : 
-                    'la ceinture Noire'}
-        </Link>
+        {/* Back links */}
+        <div className="flex items-center gap-4 mb-8">
+          <Link 
+            href="/ceintures"
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 mr-1" />
+            Ceintures
+          </Link>
+          <span className="text-gray-300">/</span>
+          <Link 
+            href={`/ceintures/${module.belt.id}`}
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            {getBeltName(module.belt.name)}
+          </Link>
+        </div>
 
-        {/* Header */}
+        {/* Header Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+          {/* Top banner with belt color */}
           <div 
             className="h-24 md:h-32"
-            style={{ backgroundColor: module.belt.color }}
+            style={{ backgroundColor: beltColor }}
           />
+          
           <div className="p-6 md:p-8">
-            <div className="flex items-center space-x-3 -mt-12 md:-mt-14 mb-4">
-              <div 
-                className="w-16 h-16 md:w-20 md:h-20 rounded-xl shadow-lg flex items-center justify-center"
-                style={{ backgroundColor: module.belt.color }}
-              >
-                <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-white" />
-              </div>
-              <div className="pt-4">
-                <div className="text-sm font-medium" style={{ color: module.belt.color }}>
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div className="flex-1">
+                {/* Module code badge */}
+                <div 
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold mb-4"
+                  style={{ 
+                    backgroundColor: `${beltColor}20`,
+                    color: beltColor
+                  }}
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
                   {module.code}
                 </div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+
+                {/* Title */}
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                   {module.name}
                 </h1>
+
+                {/* Description */}
+                {module.description && (
+                  <p className="text-lg text-gray-600 max-w-3xl">
+                    {module.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex gap-4">
+                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {sortedTechniques.length}
+                  </div>
+                  <div className="text-sm text-gray-500">Techniques</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {totalVideos}
+                  </div>
+                  <div className="text-sm text-gray-500">Vidéos</div>
+                </div>
               </div>
             </div>
-            {module.description && (
-              <p className="text-gray-600 text-lg">
-                {module.description}
-              </p>
-            )}
+
+            {/* Parent belt link */}
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <Link
+                href={`/ceintures/${module.belt.id}`}
+                className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 transition-colors"
+              >
+                <Trophy className="w-4 h-4 mr-2" style={{ color: beltColor }} />
+                Partie de la {getBeltName(module.belt.name)}
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Techniques */}
+        {/* Techniques List */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Techniques ({module.techniques?.length || 0})
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Techniques ({sortedTechniques.length})
+            </h2>
+          </div>
 
-          {module.techniques && module.techniques.length > 0 ? (
-            <div className="space-y-4">
-              {module.techniques
-                .sort((a, b) => a.order - b.order)
-                .map((technique) => {
-                  const progress = progressLabels[technique.progress || 'NON_ACQUIS'];
-                  return (
-                    <div
-                      key={technique.id}
-                      className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-6"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          {/* Header avec catégorie et progression */}
-                          <div className="flex items-center space-x-3 mb-3 flex-wrap gap-2">
-                            <span className="text-sm font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-700">
-                              {categoryLabels[technique.category] || technique.category}
-                            </span>
-                            <span className={`text-sm font-medium px-3 py-1 rounded-full ${progress.bg} ${progress.color}`}>
-                              {progress.label}
-                            </span>
-                          </div>
+          {sortedTechniques.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {sortedTechniques.map((technique) => {
+                const categoryStyle = getCategoryColor(technique.category);
+                const hasVideos = technique._count.videos > 0;
 
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            {technique.name}
-                          </h3>
-
-                          {technique.description && (
-                            <p className="text-gray-600 mb-3">
-                              {technique.description}
-                            </p>
-                          )}
-
-                          {technique.instructions && (
-                            <div className="bg-blue-50 rounded-lg p-4 mb-3">
-                              <h4 className="text-sm font-semibold text-blue-900 mb-1">Instructions</h4>
-                              <p className="text-blue-800 text-sm">{technique.instructions}</p>
-                            </div>
-                          )}
-
-                          {technique.keyPoints && technique.keyPoints.length > 0 && (
-                            <div className="space-y-1 mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700">Points clés</h4>
-                              <ul className="space-y-1">
-                                {technique.keyPoints.map((point, idx) => (
-                                  <li key={idx} className="flex items-start text-sm text-gray-600">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                                    <span>{point}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {/* Sélecteur de progression */}
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <label className="text-sm font-medium text-gray-700 mb-2 block">
-                              Niveau de maîtrise :
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                              {(['NON_ACQUIS', 'EN_COURS_DAPPRENTISSAGE', 'ACQUIS', 'MAITRISE'] as ProgressLevel[]).map((level) => (
-                                <button
-                                  key={level}
-                                  onClick={() => updateProgress(technique.id, level)}
-                                  disabled={updating === technique.id}
-                                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                    technique.progress === level
-                                      ? `${progressLabels[level].bg} ${progressLabels[level].color} ring-2 ring-offset-1 ring-gray-300`
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                  }`}
-                                >
-                                  {progressLabels[level].label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Boutons vidéo */}
-                        <div className="ml-4 flex flex-col space-y-2">
-                          <button
-                            onClick={() => setShowVideoModal(technique.id)}
-                            className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
-                            title="Uploader une vidéo"
-                          >
-                            <Upload className="w-4 h-4 text-blue-600" />
-                          </button>
-                        </div>
+                return (
+                  <Link
+                    key={technique.id}
+                    href={`/techniques/${technique.id}`}
+                    className="group block bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-5 border border-transparent hover:border-gray-200"
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Order indicator */}
+                      <div 
+                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm"
+                        style={{ 
+                          backgroundColor: `${beltColor}15`,
+                          color: beltColor
+                        }}
+                      >
+                        {technique.order}
                       </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            {/* Category badge */}
+                            <span 
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${categoryStyle.bg} ${categoryStyle.text} ${categoryStyle.border}`}
+                            >
+                              {getCategoryLabel(technique.category)}
+                            </span>
+
+                            {/* Technique name */}
+                            <h3 className="text-lg font-semibold text-gray-900 mt-2 group-hover:text-blue-600 transition-colors">
+                              {technique.name}
+                            </h3>
+                          </div>
+
+                          {/* Video indicator */}
+                          {hasVideos && (
+                            <div 
+                              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+                              style={{ 
+                                backgroundColor: `${beltColor}15`,
+                                color: beltColor
+                              }}
+                            >
+                              <Play className="w-3 h-3" />
+                              {technique._count.videos}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Description preview */}
+                        {technique.description && (
+                          <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                            {technique.description}
+                          </p>
+                        )}
+
+                        {/* Key points preview */}
+                        {technique.keyPoints && technique.keyPoints.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {technique.keyPoints.slice(0, 2).map((point, index) => (
+                              <span 
+                                key={index}
+                                className="inline-flex items-center text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded"
+                              >
+                                <FileText className="w-3 h-3 mr-1" />
+                                {point.length > 40 ? point.substring(0, 40) + '...' : point}
+                              </span>
+                            ))}
+                            {technique.keyPoints.length > 2 && (
+                              <span className="text-xs text-gray-400">
+                                +{technique.keyPoints.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Arrow */}
+                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transform group-hover:translate-x-1 transition-all flex-shrink-0 mt-1" />
                     </div>
-                  );
-                })}
+                  </Link>
+                );
+              })}
             </div>
           ) : (
-            <div className="text-center py-12 bg-white rounded-2xl">
-              <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">Aucune technique disponible pour ce module.</p>
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
+              <Target className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Aucune technique disponible
+              </h3>
+              <p className="text-gray-500 max-w-md mx-auto">
+                Ce module ne contient pas encore de techniques. Revenez plus tard pour découvrir le contenu.
+              </p>
             </div>
           )}
         </div>
       </div>
-
-      {/* Modal upload vidéo */}
-      {showVideoModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Ajouter une vidéo</h3>
-              <button
-                onClick={() => setShowVideoModal(null)}
-                className="p-1 hover:bg-gray-100 rounded-full"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Type de vidéo
-                </label>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setSelectedSlot('DEBUTANT')}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedSlot === 'DEBUTANT'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Débutant
-                  </button>
-                  <button
-                    onClick={() => setSelectedSlot('PROGRESSION')}
-                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedSlot === 'PROGRESSION'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    Progression
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Fichier vidéo
-                </label>
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file && showVideoModal) {
-                      uploadVideo(showVideoModal, file, selectedSlot);
-                    }
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <p className="text-xs text-gray-500">
-                Formats acceptés : MP4, MOV, AVI (max 100MB)
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

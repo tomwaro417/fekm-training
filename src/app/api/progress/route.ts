@@ -2,37 +2,52 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { z } from 'zod'
-
-const progressSchema = z.object({
-  techniqueId: z.string(),
-  level: z.enum(['NON_ACQUIS', 'EN_COURS_DAPPRENTISSAGE', 'ACQUIS', 'MAITRISE']),
-  notes: z.string().optional(),
-})
+import { withRateLimit } from '@/lib/rate-limit'
+import { progressCreateSchema, progressQuerySchema, idSchema } from '@/lib/validation'
+import { createErrorResponse, handleZodError, logError, logWarning } from '@/lib/error-handler'
+import { ZodError } from 'zod'
 
 // GET /api/progress - Récupère la progression de l'utilisateur connecté
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
+    // Vérification de l'authentification
     const session = await getServerSession(authOptions)
     if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      logWarning('GET /api/progress', 'Tentative d\'accès non autorisé', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+      })
+      return createErrorResponse('UNAUTHORIZED', 401)
     }
 
+    // Validation des paramètres de requête
     const { searchParams } = new URL(request.url)
-    const techniqueId = searchParams.get('techniqueId')
-    const beltId = searchParams.get('beltId')
+    const queryParams = {
+      techniqueId: searchParams.get('techniqueId') ?? undefined,
+      beltId: searchParams.get('beltId') ?? undefined,
+    }
+    
+    const validatedParams = progressQuerySchema.parse(queryParams)
 
-    const where: any = { userId: session.user.id }
-    if (techniqueId) where.techniqueId = techniqueId
+    const where: { 
+      userId: string
+      techniqueId?: string 
+    } = { userId: session.user.id }
+    
+    if (validatedParams.techniqueId) {
+      where.techniqueId = validatedParams.techniqueId
+    }
 
     // Si on demande la progression par ceinture
-    if (beltId) {
+    if (validatedParams.beltId) {
+      // Validation de l'ID de ceinture
+      idSchema.parse(validatedParams.beltId)
+      
       const progress = await prisma.userTechniqueProgress.findMany({
         where: {
           userId: session.user.id,
           technique: {
             module: {
-              beltId: beltId,
+              beltId: validatedParams.beltId,
             },
           },
         },
@@ -63,10 +78,10 @@ export async function GET(request: NextRequest) {
       // Calculer les statistiques
       const stats = {
         total: progress.length,
-        nonAcquis: progress.filter((p) => p.level === 'NON_ACQUIS').length,
-        enCours: progress.filter((p) => p.level === 'EN_COURS_DAPPRENTISSAGE').length,
-        acquis: progress.filter((p) => p.level === 'ACQUIS').length,
-        maitrise: progress.filter((p) => p.level === 'MAITRISE').length,
+        nonAcquis: progress.filter((p: typeof progress[0]) => p.level === 'NON_ACQUIS').length,
+        enCours: progress.filter((p: typeof progress[0]) => p.level === 'EN_COURS_DAPPRENTISSAGE').length,
+        acquis: progress.filter((p: typeof progress[0]) => p.level === 'ACQUIS').length,
+        maitrise: progress.filter((p: typeof progress[0]) => p.level === 'MAITRISE').length,
       }
 
       return NextResponse.json({ progress, stats })
@@ -99,24 +114,29 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(progress)
   } catch (error) {
-    console.error('Erreur GET /api/progress:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération de la progression' },
-      { status: 500 }
-    )
+    if (error instanceof ZodError) {
+      return handleZodError(error)
+    }
+    
+    logError('GET /api/progress', error)
+    return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error)
   }
 }
 
 // POST /api/progress - Met à jour ou crée une progression
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
+    // Vérification de l'authentification
     const session = await getServerSession(authOptions)
     if (!session) {
-      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+      logWarning('POST /api/progress', 'Tentative d\'accès non autorisé', {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
+      })
+      return createErrorResponse('UNAUTHORIZED', 401)
     }
 
     const body = await request.json()
-    const validatedData = progressSchema.parse(body)
+    const validatedData = progressCreateSchema.parse(body)
 
     const progress = await prisma.userTechniqueProgress.upsert({
       where: {
@@ -139,16 +159,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(progress)
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Données invalides', details: error.issues },
-        { status: 400 }
-      )
+    if (error instanceof ZodError) {
+      return handleZodError(error)
     }
-    console.error('Erreur POST /api/progress:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour de la progression' },
-      { status: 500 }
-    )
+    
+    logError('POST /api/progress', error)
+    return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error)
   }
 }
+
+// Export avec rate limiting
+// GET: 100 requêtes/minute, POST: 20 requêtes/minute
+export const GET = withRateLimit(getHandler, { method: 'GET', max: 100 })
+export const POST = withRateLimit(postHandler, { method: 'POST', max: 20 })
