@@ -8,18 +8,17 @@
 // ============================================
 
 export type TechniqueCategory = 
-  | 'FRAPPE'
-  | 'PIED'
-  | 'DEFENSE_FRAPPE'
-  | 'DEFENSE_COUTEAU'
-  | 'DEFENSE_BATON'
-  | 'DEFENSE_PISTOLET'
-  | 'DEFENSE_ETRANGLEMENT'
-  | 'DEFENSE_CLE'
-  | 'DEFENSE_POUSSEE'
-  | 'DEFENSE_SAISIE'
-  | 'SOL'
-  | 'AUTRE';
+  | 'FRAPPE_DE_FACE'
+  | 'FRAPPE_DE_COTE'
+  | 'SAISISSEMENTS'
+  | 'DEFENSES_SUR_ATTAQUES_PONCTUELLES'
+  | 'STRANGULATIONS'
+  | 'DEFENSES_SUR_ATTAQUES_CIRCULAIRES'
+  | 'ATTAQUES_AU_SOL'
+  | 'ATTAQUES_AVEC_ARMES_BLANCHES'
+  | 'ATTAQUES_AVEC_BATON'
+  | 'ATTAQUES_AVEC_ARMES_A_FEU'
+  | 'AUTRES';
 
 export type VideoType = 'COACH' | 'DEMONSTRATION';
 
@@ -83,9 +82,9 @@ export interface Technique {
   id: string;
   name: string;
   category: TechniqueCategory;
-  subCategory: string;
-  description: string;
-  instructions: string;
+  subCategory?: string;
+  description?: string;
+  instructions?: string;
   keyPoints: string[];
   order: number;
   module: Module;
@@ -123,7 +122,6 @@ export const PROGRESS_LEVELS: {
   label: string; 
   color: string; 
   bgColor: string;
-  icon?: string;
 }[] = [
   { 
     value: 'NON_ACQUIS', 
@@ -152,18 +150,17 @@ export const PROGRESS_LEVELS: {
 ];
 
 export const CATEGORY_LABELS: Record<TechniqueCategory, string> = {
-  FRAPPE: 'Frappes',
-  PIED: 'Coups de pied',
-  DEFENSE_FRAPPE: 'Défenses contre frappes',
-  DEFENSE_COUTEAU: 'Défenses contre couteau',
-  DEFENSE_BATON: 'Défenses contre bâton',
-  DEFENSE_PISTOLET: 'Défenses contre pistolet',
-  DEFENSE_ETRANGLEMENT: 'Défenses contre étranglement',
-  DEFENSE_CLE: 'Défenses contre clés',
-  DEFENSE_POUSSEE: 'Défenses contre poussées',
-  DEFENSE_SAISIE: 'Défenses contre saisies',
-  SOL: 'Techniques au sol',
-  AUTRE: 'Autres techniques',
+  FRAPPE_DE_FACE: 'Frappe de face',
+  FRAPPE_DE_COTE: 'Frappe de côté',
+  SAISISSEMENTS: 'Saisies',
+  DEFENSES_SUR_ATTAQUES_PONCTUELLES: 'Défenses contre attaques ponctuelles',
+  STRANGULATIONS: 'Étranglements',
+  DEFENSES_SUR_ATTAQUES_CIRCULAIRES: 'Défenses contre attaques circulaires',
+  ATTAQUES_AU_SOL: 'Attaques au sol',
+  ATTAQUES_AVEC_ARMES_BLANCHES: 'Attaques avec armes blanches',
+  ATTAQUES_AVEC_BATON: 'Attaques avec bâton',
+  ATTAQUES_AVEC_ARMES_A_FEU: 'Attaques avec armes à feu',
+  AUTRES: 'Autres',
 };
 
 export const VIDEO_TYPE_LABELS: Record<VideoType | PersonalVideoType, string> = {
