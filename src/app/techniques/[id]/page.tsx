@@ -21,9 +21,12 @@ import {
   ChevronRight as ChevronRightIcon,
   Loader2,
   Save,
-  Info
+  Info,
+  Download,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { VideoUploader } from '@/components/training/VideoUploader';
 import { 
   type Technique, 
   type Module,
@@ -231,43 +234,67 @@ function ProgressSection({
   );
 }
 
-function VideoSection({ 
-  videos, 
-  userVideos, 
-  beltColor 
-}: { 
-  videos: TechniqueVideo[]; 
+function VideoSection({
+  videos,
+  userVideos,
+  beltColor,
+  techniqueId,
+  onVideoUploaded
+}: {
+  videos: TechniqueVideo[];
   userVideos: UserTechniqueVideo[];
   beltColor: string;
+  techniqueId: string;
+  onVideoUploaded: () => void;
 }) {
   const coachVideos = videos.filter(v => v.type === 'COACH');
   const demoVideos = videos.filter(v => v.type === 'DEMONSTRATION');
 
   return (
-    <div className="space-y-6">
-      {/* Vidéos Coach */}
-      {(coachVideos.length > 0 || demoVideos.length > 0) && (
+    <div className="space-y-8">
+      {/* Vidéo du Coach - Section dédiée */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <User className="w-5 h-5 mr-2" style={{ color: beltColor }} />
+          Vidéo du Coach
+        </h3>
+
+        {coachVideos.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4">
+            {coachVideos.map((video, index) => (
+              <VideoCard
+                key={`coach-${index}`}
+                video={video.video}
+                label="Démonstration par le coach"
+                beltColor={beltColor}
+                showDownload={true}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50 rounded-xl p-8 text-center">
+            <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Aucune vidéo du coach disponible pour cette technique.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Vidéos de Démonstration */}
+      {demoVideos.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <Video className="w-5 h-5 mr-2" style={{ color: beltColor }} />
-            Vidéos d&apos;apprentissage
+            Démonstrations
           </h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {coachVideos.map((video, index) => (
-              <VideoCard 
-                key={`coach-${index}`} 
-                video={video.video} 
-                label="Démonstration Coach"
-                beltColor={beltColor}
-              />
-            ))}
             {demoVideos.map((video, index) => (
-              <VideoCard 
-                key={`demo-${index}`} 
-                video={video.video} 
-                label="Démonstration"
+              <VideoCard
+                key={`demo-${index}`}
+                video={video.video}
+                label={`Démonstration ${index + 1}`}
                 beltColor={beltColor}
+                showDownload={true}
               />
             ))}
           </div>
@@ -280,24 +307,28 @@ function VideoSection({
           <Upload className="w-5 h-5 mr-2" style={{ color: beltColor }} />
           Mes vidéos
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Slot débutant */}
-          <PersonalVideoSlot 
+          <PersonalVideoSlot
             type="PERSONAL_BEGINNER"
             label="Vidéo débutant"
             description="Enregistrez votre première tentative"
             userVideos={userVideos}
             beltColor={beltColor}
+            techniqueId={techniqueId}
+            onVideoUploaded={onVideoUploaded}
           />
-          
+
           {/* Slot progression */}
-          <PersonalVideoSlot 
+          <PersonalVideoSlot
             type="PERSONAL_PROGRESSION"
             label="Vidéo progression"
             description="Comparez vos améliorations"
             userVideos={userVideos}
             beltColor={beltColor}
+            techniqueId={techniqueId}
+            onVideoUploaded={onVideoUploaded}
           />
         </div>
       </div>
@@ -305,88 +336,161 @@ function VideoSection({
   );
 }
 
-function VideoCard({ 
-  video, 
+function VideoCard({
+  video,
   label,
-  beltColor 
-}: { 
-  video: VideoAsset; 
+  beltColor,
+  showDownload = false
+}: {
+  video: VideoAsset;
   label: string;
   beltColor: string;
+  showDownload?: boolean;
 }) {
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`/api/videos/${video.id}/download`);
+      if (!response.ok) throw new Error('Erreur lors du téléchargement');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = video.title || 'video.mp4';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur de téléchargement:', error);
+      alert('Erreur lors du téléchargement de la vidéo');
+    }
+  };
+
   return (
-    <div className="group relative bg-gray-900 rounded-xl overflow-hidden aspect-video cursor-pointer">
-      {/* Thumbnail ou placeholder */}
-      {video.thumbnailUrl ? (
-        <img 
-          src={video.thumbnailUrl} 
-          alt={video.title || label}
-          className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-800">
-          <Play className="w-16 h-16 text-gray-600" />
+    <div className="group relative bg-gray-900 rounded-xl overflow-hidden">
+      {/* Zone vidéo avec aspect ratio */}
+      <div className="relative aspect-video cursor-pointer">
+        {/* Thumbnail ou placeholder */}
+        {video.thumbnailUrl ? (
+          <img
+            src={video.thumbnailUrl}
+            alt={video.title || label}
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-800">
+            <Play className="w-16 h-16 text-gray-600" />
+          </div>
+        )}
+
+        {/* Overlay play */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: beltColor }}
+          >
+            <Play className="w-8 h-8 text-white ml-1" />
+          </div>
         </div>
-      )}
-      
-      {/* Overlay play */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        <div 
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: beltColor }}
-        >
-          <Play className="w-8 h-8 text-white ml-1" />
+
+        {/* Label */}
+        <div className="absolute top-3 left-3">
+          <span
+            className="px-2 py-1 rounded-lg text-xs font-medium text-white"
+            style={{ backgroundColor: beltColor }}
+          >
+            {label}
+          </span>
         </div>
+
+        {/* Duration */}
+        {video.duration && (
+          <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/70 rounded text-xs text-white">
+            {formatDuration(video.duration)}
+          </div>
+        )}
       </div>
-      
-      {/* Label */}
-      <div className="absolute top-3 left-3">
-        <span 
-          className="px-2 py-1 rounded-lg text-xs font-medium text-white"
-          style={{ backgroundColor: beltColor }}
-        >
-          {label}
-        </span>
-      </div>
-      
-      {/* Duration */}
-      {video.duration && (
-        <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/70 rounded text-xs text-white">
-          {formatDuration(video.duration)}
+
+      {/* Barre d'actions en dessous de la vidéo */}
+      {showDownload && video.url && (
+        <div className="bg-gray-800 px-4 py-3 flex items-center justify-between">
+          <span className="text-sm text-gray-400 truncate flex-1 mr-4">
+            {video.title || 'Vidéo'}
+          </span>
+          <button
+            onClick={handleDownload}
+            className="inline-flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4 mr-1.5" />
+            Télécharger
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function PersonalVideoSlot({ 
-  type, 
-  label, 
+function PersonalVideoSlot({
+  type,
+  label,
   description,
   userVideos,
-  beltColor 
-}: { 
+  beltColor,
+  techniqueId,
+  onVideoUploaded
+}: {
   type: 'PERSONAL_BEGINNER' | 'PERSONAL_PROGRESSION';
   label: string;
   description: string;
   userVideos: UserTechniqueVideo[];
   beltColor: string;
+  techniqueId: string;
+  onVideoUploaded: () => void;
 }) {
+  const [showUploader, setShowUploader] = useState(false);
   const video = userVideos.find(v => v.type === type);
 
   if (video) {
     return (
-      <VideoCard 
-        video={video.video} 
+      <VideoCard
+        video={video.video}
         label={label}
         beltColor={beltColor}
+        showDownload={true}
       />
+    );
+  }
+
+  if (showUploader) {
+    return (
+      <div className="border-2 border-gray-200 rounded-xl p-4">
+        <VideoUploader
+          techniqueId={techniqueId}
+          videoType={type}
+          onUploadSuccess={() => {
+            setShowUploader(false);
+            onVideoUploaded();
+          }}
+          onUploadError={(error) => {
+            console.error('Erreur upload:', error);
+          }}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-2 w-full"
+          onClick={() => setShowUploader(false)}
+        >
+          Annuler
+        </Button>
+      </div>
     );
   }
 
   return (
     <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-gray-300 transition-colors aspect-video">
-      <div 
+      <div
         className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
         style={{ backgroundColor: `${beltColor}15` }}
       >
@@ -394,11 +498,12 @@ function PersonalVideoSlot({
       </div>
       <p className="font-medium text-gray-900 mb-1">{label}</p>
       <p className="text-sm text-gray-500">{description}</p>
-      <Button 
-        variant="outline" 
-        size="sm" 
+      <Button
+        variant="outline"
+        size="sm"
         className="mt-4"
         style={{ borderColor: beltColor, color: beltColor }}
+        onClick={() => setShowUploader(true)}
       >
         Ajouter une vidéo
       </Button>
@@ -654,6 +759,8 @@ export default function TechniqueDetailPage() {
                 videos={technique.videos}
                 userVideos={technique.userVideos}
                 beltColor={beltColor}
+                techniqueId={technique.id}
+                onVideoUploaded={fetchTechnique}
               />
             </section>
           </div>
