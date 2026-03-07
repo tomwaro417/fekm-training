@@ -6,16 +6,36 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ['http://localhost:3000']
 
 const nextConfig: NextConfig = {
+  // Désactiver le cache en développement
+  generateEtags: false,
+  
   // Configuration CORS pour les routes API
   async headers() {
     return [
+      {
+        // Appliquer à toutes les routes
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
       {
         // Appliquer à toutes les routes API
         source: '/api/:path*',
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            // En production, spécifier l'origine exacte au lieu de '*'
             value: process.env.NODE_ENV === 'production' 
               ? allowedOrigins[0] || ''
               : '*',
@@ -34,9 +54,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Access-Control-Max-Age',
-            value: '86400', // 24 heures
+            value: '86400',
           },
-          // Headers de sécurité supplémentaires
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',

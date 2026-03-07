@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Trophy, ChevronLeft, BookOpen, Target } from 'lucide-react';
+import { Trophy, ChevronLeft, BookOpen, Target, Lock } from 'lucide-react';
 
 interface Module {
   id: string;
@@ -26,8 +26,17 @@ export default function BeltDetailPage() {
   const params = useParams();
   const [belt, setBelt] = useState<Belt | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Vérifier si l'utilisateur est connecté
+    fetch('/api/auth/session')
+      .then(res => res.json())
+      .then(session => {
+        setIsAuthenticated(!!session?.user);
+      })
+      .catch(() => setIsAuthenticated(false));
+
     if (params.id) {
       fetch(`/api/belts/${params.id}`)
         .then(res => res.json())
@@ -105,41 +114,81 @@ export default function BeltDetailPage() {
 
         {/* Modules */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Modules ({belt.modules?.length || 0})
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Modules ({belt.modules?.length || 0})
+            </h2>
+            {!isAuthenticated && (
+              <Link
+                href="/connexion"
+                className="inline-flex items-center px-4 py-2 bg-yellow-500 text-gray-900 font-medium rounded-lg hover:bg-yellow-400 transition-colors text-sm"
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Se connecter pour accéder au contenu
+              </Link>
+            )}
+          </div>
 
           {belt.modules && belt.modules.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {belt.modules.sort((a, b) => a.order - b.order).map((module) => (
-                <Link
-                  key={module.id}
-                  href={`/modules/${module.id}`}
-                  className="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-6 group"
-                >
-                  <div className="flex items-start space-x-4">
-                    <div 
-                      className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${belt.color}20` }}
-                    >
-                      <BookOpen 
-                        className="w-6 h-6"
-                        style={{ color: belt.color }}
-                      />
+                isAuthenticated ? (
+                  <Link
+                    key={module.id}
+                    href={`/modules/${module.id}`}
+                    className="block bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-6 group"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div 
+                        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: `${belt.color}20` }}
+                      >
+                        <BookOpen 
+                          className="w-6 h-6"
+                          style={{ color: belt.color }}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-500 mb-1">{module.code}</div>
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {module.name}
+                        </h3>
+                        {module.description && (
+                          <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                            {module.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm text-gray-500 mb-1">{module.code}</div>
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {module.name}
-                      </h3>
-                      {module.description && (
-                        <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                          {module.description}
+                  </Link>
+                ) : (
+                  <div
+                    key={module.id}
+                    className="block bg-white rounded-xl shadow-sm p-6 opacity-75"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div 
+                        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-gray-100"
+                      >
+                        <Lock className="w-6 h-6 text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm text-gray-400 mb-1">{module.code}</div>
+                        <h3 className="text-lg font-semibold text-gray-500">
+                          {module.name}
+                        </h3>
+                        {module.description && (
+                          <p className="text-gray-400 text-sm mt-2 line-clamp-2">
+                            {module.description}
+                          </p>
+                        )}
+                        <p className="text-xs text-yellow-600 mt-3 font-medium">
+                          🔒 Connectez-vous pour accéder au contenu
                         </p>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </Link>
+                )
               ))}
             </div>
           ) : (

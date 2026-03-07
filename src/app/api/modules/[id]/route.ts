@@ -12,6 +12,8 @@ async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let moduleId = 'unknown'
+  
   try {
     // Vérification de l'authentification
     const session = await getServerSession(authOptions)
@@ -23,6 +25,7 @@ async function getHandler(
     }
 
     const { id } = await params
+    moduleId = id
     
     // Validation de l'ID
     const validatedId = idSchema.parse(id)
@@ -39,15 +42,11 @@ async function getHandler(
         },
         techniques: {
           orderBy: { order: 'asc' },
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            instructions: true,
-            keyPoints: true,
-            category: true,
-            order: true,
-          },
+          include: {
+            videos: {
+              select: { id: true }
+            }
+          }
         },
       },
     });
@@ -56,13 +55,24 @@ async function getHandler(
       return createErrorResponse('NOT_FOUND', 404)
     }
 
-    return NextResponse.json(module);
+    // Transformer les données pour matcher le format attendu par le client
+    const formattedModule = {
+      ...module,
+      techniques: module.techniques.map(tech => ({
+        ...tech,
+        _count: {
+          videos: tech.videos.length
+        }
+      }))
+    }
+
+    return NextResponse.json(formattedModule);
   } catch (error) {
     if (error instanceof ZodError) {
       return handleZodError(error)
     }
     
-    logError('GET /api/modules/[id]', error, { params: await params.catch(() => 'unknown') })
+    logError('GET /api/modules/[id]', error, { moduleId })
     return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error)
   }
 }

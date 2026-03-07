@@ -1,298 +1,238 @@
-# FEKM Training App
+# 🥋 FEKM Training - Backend APIs
 
-Application web complète pour le suivi de progression des techniques de Krav Maga FEKM (Fédération Européenne de Krav Maga).
+APIs backend pour la plateforme de formation FEKM (Fédération Européenne de Krav Maga).
 
-## 🚀 Installation Rapide (Docker)
+## 📁 Structure des Fichiers
 
-La méthode la plus simple pour tester l'application en local :
-
-```bash
-# 1. Cloner
-git clone https://github.com/tomwaro417/fekm-training.git
-cd fekm-training
-
-# 2. Lancer avec Docker
-docker compose up --build -d
-
-# 3. Attendre 2-3 minutes...
-
-# 4. Ouvrir http://localhost:3000
 ```
-
-📖 **Guide d'installation détaillé** : voir [INSTALL.md](./INSTALL.md)
-
----
-
-## ✨ Fonctionnalités
-
-### Pour les pratiquants
-- 📊 **Dashboard personnel** avec statistiques de progression
-- 🥋 **Navigation hiérarchique** : Ceinture → Module → Technique
-- 🔍 **Recherche** de techniques par nom ou catégorie
-- 📈 **Suivi de progression** sur 4 niveaux :
-  - 🔴 Non acquis
-  - 🟡 En cours d'apprentissage
-  - 🔵 Acquis
-  - 🟢 Maîtrisé
-- 🎥 **Gestion des vidéos** :
-  - Vidéos coach officielles
-  - Vidéos personnelles (slot débutant et progression)
-- 📱 **Interface responsive** (mobile, tablette, desktop)
-
-### Pour les administrateurs
-- 🔐 **Espace admin** pour gérer le référentiel
-- ➕ **CRUD complet** des ceintures, modules et techniques
-- 📤 **Upload de vidéos** coach
-- 👥 **Gestion des utilisateurs**
-
-## 🛠️ Stack Technique
-
-| Technologie | Usage |
-|------------|-------|
-| **Next.js 16** | Framework React (App Router) |
-| **React 19** | UI Library |
-| **TypeScript** | Typage statique |
-| **Tailwind CSS** | Styling |
-| **Prisma** | ORM Database |
-| **PostgreSQL** | Base de données |
-| **NextAuth.js** | Authentification |
-| **bcryptjs** | Hashage des mots de passe |
+fekm-training/
+├── src/
+│   ├── pages/api/
+│   │   ├── videos/
+│   │   │   ├── upload.ts          # POST /api/videos/upload
+│   │   │   └── [id]/
+│   │   │       ├── stream.ts      # GET /api/videos/[id]/stream
+│   │   │       └── download.ts    # GET /api/videos/[id]/download
+│   │   ├── admin/
+│   │   │   └── users/
+│   │   │       └── [id]/
+│   │   │           └── belt.ts    # PATCH /api/admin/users/[id]/belt
+│   │   ├── instructor/
+│   │   │   └── students.ts        # GET /api/instructor/students
+│   │   └── progress/
+│   │       └── batch.ts           # POST /api/progress/batch
+│   └── lib/
+│       ├── validation-schemas.ts  # Schémas Zod réutilisables
+│       ├── api-middleware.ts      # Middleware d'auth et helpers
+│       └── api-config.ts          # Configuration
+├── prisma/
+│   └── schema.prisma.example      # Schéma Prisma de référence
+├── API_DOCUMENTATION.md           # Documentation complète des endpoints
+└── README.md                      # Ce fichier
+```
 
 ## 🚀 Installation
 
-### Prérequis
-- Node.js 20+
+### 1. Prérequis
+
+- Node.js 18+
 - PostgreSQL 14+
-- pnpm (recommandé)
+- Redis (Upstash ou local)
 
-### 1. Cloner et installer
-
-```bash
-git clone <repo-url>
-cd fekm-app
-pnpm install
-```
-
-### 2. Configuration environnement
+### 2. Installation des dépendances
 
 ```bash
-cp .env.example .env
+# Créer le projet Next.js (si nouveau)
+pnpx create-next-app@latest fekm-training --typescript --tailwind --eslint --app --src-dir
+
+# Installer les dépendances
+pnpm add formidable @upstash/ratelimit @upstash/redis uuid zod next-auth
+pnpm add -D @types/formidable @types/uuid prisma
+
+# Initialiser Prisma
+pnpx prisma init
 ```
 
-Éditer `.env` :
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/fekm"
+### 3. Configuration
 
-# Auth
-NEXTAUTH_SECRET="votre-secret-aleatoire"
+Créer le fichier `.env.local`:
+
+```bash
+# Base de données
+DATABASE_URL="postgresql://user:password@localhost:5432/fekm_training"
+
+# Redis (Rate Limiting)
+UPSTASH_REDIS_REST_URL="https://your-url.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-token"
+
+# Stockage vidéo
+VIDEO_UPLOAD_DIR="/var/www/fekm-training/videos"
+
+# NextAuth
+NEXTAUTH_SECRET="your-secret-key-min-32-chars"
 NEXTAUTH_URL="http://localhost:3000"
+
+# JWT
+JWT_SECRET="your-jwt-secret"
 ```
 
-### 3. Initialisation de la base de données
+### 4. Configuration Prisma
+
+Copier le schéma:
+```bash
+cp prisma/schema.prisma.example prisma/schema.prisma
+```
+
+Puis générer le client:
+```bash
+pnpx prisma generate
+pnpx prisma db push
+```
+
+### 5. Configuration Next.js
+
+Mettre à jour `next.config.js`:
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  api: {
+    bodyParser: {
+      sizeLimit: '2gb',
+    },
+    responseLimit: false,
+  },
+  async headers() {
+    return [
+      {
+        source: '/videos/:path*',
+        headers: [
+          { key: 'Accept-Ranges', value: 'bytes' },
+        ],
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;
+```
+
+### 6. Créer le dossier d'upload
 
 ```bash
-# Générer le client Prisma
-pnpm db:generate
-
-# Créer les tables
-pnpm db:migrate
-
-# Remplir avec les données initiales (6 ceintures + techniques)
-pnpm db:seed
+sudo mkdir -p /var/www/fekm-training/videos
+sudo chown -R $USER:$USER /var/www/fekm-training
 ```
 
-### 4. Lancer l'application
+## 🧪 Tests
+
+### Test des endpoints avec httpie
 
 ```bash
-# Mode développement
-pnpm dev
+# Upload vidéo (instructeur/admin)
+http -f POST localhost:3000/api/videos/upload \
+  Authorization:"Bearer TOKEN" \
+  video@/path/to/video.mp4 \
+  title="Technique de base" \
+  beltLevel="WHITE" \
+  category="TECHNIQUE" \
+  isPublic="true"
 
-# Production
-pnpm build
-pnpm start
+# Streaming vidéo
+http GET localhost:3000/api/videos/UUID/stream \
+  Authorization:"Bearer TOKEN" \
+  Range:"bytes=0-1024"
+
+# Téléchargement
+http GET localhost:3000/api/videos/UUID/download \
+  Authorization:"Bearer TOKEN"
+
+# Assigner une ceinture (admin)
+http PATCH localhost:3000/api/admin/users/UUID/belt \
+  Authorization:"Bearer TOKEN" \
+  beltLevel="YELLOW" \
+  notes="Examen réussi"
+
+# Liste des élèves (instructeur)
+http GET localhost:3000/api/instructor/students \
+  Authorization:"Bearer TOKEN" \
+  page==1 \
+  limit==20 \
+  beltLevel==YELLOW
+
+# Mise à jour batch progression
+http POST localhost:3000/api/progress/batch \
+  Authorization:"Bearer TOKEN" \
+  items:='[{"videoId":"UUID","progress":100,"completed":true}]'
 ```
 
-L'application est disponible sur http://localhost:3000
+## 🔒 Sécurité
 
-## 📁 Structure du projet
+- ✅ Authentification JWT via NextAuth
+- ✅ Rate limiting par endpoint et utilisateur
+- ✅ Validation stricte des entrées (Zod)
+- ✅ Vérification des permissions par rôle
+- ✅ Protection contre les injections SQL (Prisma)
+- ✅ Headers de sécurité pour le streaming
 
-```
-fekm-app/
-├── prisma/
-│   ├── schema.prisma      # Modèles de données
-│   └── seed.ts            # Données initiales
-├── src/
-│   ├── app/
-│   │   ├── (app)/         # Routes protégées (authentifiées)
-│   │   │   ├── dashboard/ # Page d'accueil
-│   │   │   ├── belt/[id]/ # Détail ceinture
-│   │   │   ├── module/[id]/# Détail module
-│   │   │   └── technique/[id]/# Fiche technique
-│   │   ├── api/           # API Routes
-│   │   │   ├── auth/      # NextAuth
-│   │   │   ├── belts/     # API ceintures
-│   │   │   ├── modules/   # API modules
-│   │   │   ├── techniques/# API techniques
-│   │   │   └── progress/  # API progression
-│   │   ├── login/         # Page de connexion
-│   │   └── layout.tsx     # Layout racine
-│   ├── components/
-│   │   ├── ui/            # Composants UI réutilisables
-│   │   ├── StatsCards.tsx
-│   │   ├── RecentTechniques.tsx
-│   │   └── ProgressChart.tsx
-│   ├── lib/
-│   │   ├── auth.ts        # Configuration NextAuth
-│   │   ├── prisma.ts      # Client Prisma
-│   │   └── utils.ts       # Helpers
-│   └── types/
-│       └── next-auth.d.ts # Types NextAuth
-└── public/                # Assets statiques
-```
+## 📊 Rate Limits
 
-## 🗄️ Modèle de données
+| Endpoint | Limite | Fenêtre |
+|----------|--------|---------|
+| POST /api/videos/upload | 5 | 1 minute |
+| GET /api/videos/[id]/stream | Illimité* | - |
+| GET /api/videos/[id]/download | 10/vidéo | 1 minute |
+| PATCH /api/admin/users/[id]/belt | 20 | 1 minute |
+| GET /api/instructor/students | 30 | 1 minute |
+| POST /api/progress/batch | 50 | 1 minute |
 
-### Entités principales
+*Le streaming utilise les headers de cache du navigateur
+
+## 📝 TODO
+
+- [ ] Implémenter la file de traitement vidéo (transcodage)
+- [ ] Ajouter la génération de thumbnails
+- [ ] WebSocket pour notifications temps réel
+- [ ] Tests unitaires (Vitest)
+- [ ] Tests E2E (Playwright)
+- [ ] Documentation OpenAPI/Swagger
+
+## 📚 Documentation
+
+Voir [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) pour la documentation complète des endpoints.
+
+## 🏗️ Architecture
 
 ```
-User (utilisateur)
-├── email, password, role
-├── belt (ceinture actuelle)
-├── progress[] (progression par technique)
-└── videos[] (vidéos personnelles)
-
-Belt (ceinture)
-├── name, color, order
-├── content (descriptif détaillé)
-└── modules[]
-
-Module (UV - Unité de Valeur)
-├── code, name, description
-├── belt (ceinture parent)
-└── techniques[]
-
-Technique
-├── name, category, description
-├── instructions, keyPoints[]
-├── module (module parent)
-├── videos[] (vidéos coach)
-└── progress[] (progression utilisateurs)
-
-UserTechniqueProgress
-├── user, technique
-├── level (NON_ACQUIS → MAITRISE)
-└── notes
-
-VideoAsset
-├── filename, path, duration
-└── links (techniques) / userVideos
+┌─────────────────┐
+│   Next.js API   │
+│     Routes      │
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+┌────────┐ ┌──────────┐
+│  Auth  │ │ Validation│
+│Middleware│ │  (Zod)   │
+└────┬───┘ └────┬─────┘
+     │          │
+     └────┬─────┘
+          ▼
+    ┌──────────┐
+    │  Prisma  │
+    │   ORM    │
+    └────┬─────┘
+         │
+         ▼
+    ┌──────────┐
+    │PostgreSQL│
+    └──────────┘
 ```
-
-## 🔐 Authentification
-
-L'application utilise **NextAuth.js** avec la stratégie `credentials` :
-- Connexion par email/mot de passe
-- Mots de passe hashés avec bcrypt
-- Sessions JWT
-- Middleware de protection des routes
-
-### Compte de démo
-```
-Email : demo@fekm.com
-Mot de passe : demo123
-```
-
-## 📊 Programme FEKM intégré
-
-L'application inclut les 6 ceintures :
-
-| Ceinture | Modules | Description |
-|----------|---------|-------------|
-| 🟡 Jaune | 5 UVs | Bases du Krav Maga |
-| 🟠 Orange | 5 UVs | Défenses sur saisies |
-| 🟢 Verte | 5 UVs | Attaques circulaires |
-| 🔵 Bleue | 5 UVs | Sol et armes blanches |
-| 🟤 Marron | 5 UVs | Armes à feu et situations complexes |
-| ⚫ Noire 1ère Darga | 5 UVs | Synthèse et perfectionnement |
-
-## 🎯 API Endpoints
-
-### Ceintures
-```
-GET    /api/belts          # Liste des ceintures
-GET    /api/belts/:id      # Détail d'une ceinture
-```
-
-### Modules
-```
-GET    /api/modules/:id    # Détail d'un module
-```
-
-### Techniques
-```
-GET    /api/techniques     # Liste (avec filtres)
-GET    /api/techniques/:id # Détail d'une technique
-```
-
-### Progression
-```
-GET    /api/progress?techniqueId=:id
-POST   /api/progress       # Créer/mettre à jour
-{
-  "techniqueId": "...",
-  "level": "ACQUIS",
-  "notes": "..."
-}
-```
-
-## 🚀 Déploiement
-
-### Vercel (recommandé)
-
-```bash
-pnpm i -g vercel
-vercel
-```
-
-### Docker
-
-```bash
-# Build
-docker build -t fekm-app .
-
-# Run
-docker run -p 3000:3000 \
-  -e DATABASE_URL="postgresql://..." \
-  -e NEXTAUTH_SECRET="..." \
-  fekm-app
-```
-
-## 📝 Scripts disponibles
-
-| Commande | Description |
-|----------|-------------|
-| `pnpm dev` | Développement avec hot reload |
-| `pnpm build` | Build production |
-| `pnpm start` | Démarrer en production |
-| `pnpm lint` | Linter ESLint |
-| `pnpm db:generate` | Générer le client Prisma |
-| `pnpm db:migrate` | Exécuter les migrations |
-| `pnpm db:seed` | Remplir la base de données |
-| `pnpm db:studio` | Ouvrir Prisma Studio |
 
 ## 🤝 Contribution
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/amelioration`)
-3. Commit les changements (`git commit -m 'feat: ajout fonctionnalité'`)
-4. Push sur la branche (`git push origin feature/amelioration`)
-5. Ouvrir une Pull Request
-
-## 📄 Licence
-
-Propriété de la FEKM. Tous droits réservés.
+Ces APIs sont développées par l'équipe Morpheus pour FEKM Training.
 
 ---
 
-Développé avec ❤️ pour la pratique du Krav Maga.
+**Développé avec ❤️ par Morpheus**

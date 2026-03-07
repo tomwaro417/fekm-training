@@ -1,0 +1,232 @@
+// Exemple de configuration Prisma pour FEKM Training
+// À placer dans prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?   // Pour credentials provider
+  firstName     String?
+  lastName      String?
+  image         String?
+  role          UserRole  @default(STUDENT)
+  beltLevel     BeltLevel @default(WHITE)
+  beltPromotedAt DateTime?
+  beltPromotedBy String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastActiveAt  DateTime?
+
+  accounts      Account[]
+  sessions      Session[]
+  videos        Video[]
+  videoProgress VideoProgress[]
+  videoViews    VideoView[]
+  videoDownloads VideoDownload[]
+  beltHistory   BeltHistory[]
+  notifications Notification[]
+  accessGrants  VideoAccessGrant[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Video {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  fileUrl     String
+  fileSize    Int
+  fileType    String
+  beltLevel   BeltLevel
+  category    VideoCategory
+  tags        String[]     @default([])
+  isPublic    Boolean      @default(false)
+  status      VideoStatus  @default(PROCESSING)
+  uploadedBy  String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  uploadedByUser User @relation(fields: [uploadedBy], references: [id])
+  progress       VideoProgress[]
+  views          VideoView[]
+  downloads      VideoDownload[]
+  accessGrants   VideoAccessGrant[]
+}
+
+model VideoProgress {
+  id              String   @id @default(uuid())
+  userId          String
+  videoId         String
+  progress        Int      @default(0)
+  completed       Boolean  @default(false)
+  watchedDuration Int?
+  totalDuration   Int?
+  lastPosition    Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+}
+
+model VideoView {
+  id       String   @id @default(uuid())
+  userId   String
+  videoId  String
+  watchedAt DateTime @default(now())
+  duration Int      @default(0)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+}
+
+model VideoDownload {
+  id        String   @id @default(uuid())
+  userId    String
+  videoId   String
+  downloadedAt DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([videoId])
+}
+
+model VideoAccessGrant {
+  id        String   @id @default(uuid())
+  userId    String
+  videoId   String
+  grantedBy String
+  grantedAt DateTime @default(now())
+  expiresAt DateTime?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, videoId])
+  @@index([userId])
+  @@index([videoId])
+}
+
+model BeltHistory {
+  id           String   @id @default(uuid())
+  userId       String
+  previousBelt BeltLevel
+  newBelt      BeltLevel
+  promotedAt   DateTime
+  promotedBy   String
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
+// Enums
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum BeltLevel {
+  WHITE
+  YELLOW
+  ORANGE
+  GREEN
+  BLUE
+  BROWN
+  BLACK
+}
+
+enum VideoCategory {
+  TECHNIQUE
+  KATA
+  KUMITE
+  PHYSICAL
+  THEORY
+}
+
+enum VideoStatus {
+  PROCESSING
+  READY
+  ERROR
+}
+
+enum NotificationType {
+  BELT_PROMOTION
+  VIDEO_AVAILABLE
+  PROGRESS_MILESTONE
+  SYSTEM
+}

@@ -1,0 +1,105 @@
+{
+  "_comment": "Dépendances pour les fonctionnalités Mobile & Vidéo - À installer avec: pnpm install",
+  "dependencies": {
+    "serveur": {
+      "web-push": {
+        "version": "^3.6.7",
+        "description": "Notifications push Web (VAPID)"
+      },
+      "fluent-ffmpeg": {
+        "version": "^2.1.3",
+        "description": "Transcodage vidéo avec FFmpeg"
+      },
+      "@aws-sdk/client-s3": {
+        "version": "^3.450.0",
+        "description": "Client AWS S3 (pour futur stockage cloud)",
+        "optional": true
+      },
+      "@aws-sdk/s3-request-presigner": {
+        "version": "^3.450.0",
+        "description": "URLs signées S3",
+        "optional": true
+      },
+      "bull": {
+        "version": "^4.12.0",
+        "description": "File d'attente pour jobs (transcodage)",
+        "optional": true
+      },
+      "ioredis": {
+        "version": "^5.3.2",
+        "description": "Client Redis (pour Bull)",
+        "optional": true
+      }
+    },
+    "client": {
+      "idb": {
+        "version": "^8.0.0",
+        "description": "IndexedDB moderne avec Promises"
+      },
+      "hls.js": {
+        "version": "^1.5.0",
+        "description": "Lecture HLS dans les navigateurs"
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/fluent-ffmpeg": {
+      "version": "^2.1.25",
+      "description": "Types TypeScript pour fluent-ffmpeg"
+    },
+    "workbox-cli": {
+      "version": "^7.0.0",
+      "description": "CLI pour générer le Service Worker"
+    }
+  },
+  "workbox": {
+    "workbox-window": {
+      "version": "^7.0.0",
+      "description": "Intégration Service Worker"
+    },
+    "workbox-precaching": {
+      "version": "^7.0.0",
+      "description": "Précaching des assets"
+    },
+    "workbox-routing": {
+      "version": "^7.0.0",
+      "description": "Routage des requêtes"
+    },
+    "workbox-strategies": {
+      "version": "^7.0.0",
+      "description": "Stratégies de cache"
+    },
+    "workbox-background-sync": {
+      "version": "^7.0.0",
+      "description": "Synchronisation en arrière-plan"
+    }
+  },
+  "commandes_installation": {
+    "etape1_serveur": "pnpm add web-push fluent-ffmpeg",
+    "etape2_types": "pnpm add -D @types/fluent-ffmpeg",
+    "etape3_client": "pnpm add idb hls.js",
+    "etape4_workbox": "pnpm add workbox-window workbox-precaching workbox-routing workbox-strategies workbox-background-sync",
+    "etape5_workbox_cli": "pnpm add -D workbox-cli",
+    "etape6_optionnel_cloud": "pnpm add @aws-sdk/client-s3 @aws-sdk/s3-request-presigner bull ioredis",
+    "tout_dun_coup": "pnpm add web-push fluent-ffmpeg idb hls.js workbox-window workbox-precaching workbox-routing workbox-strategies workbox-background-sync && pnpm add -D @types/fluent-ffmpeg workbox-cli"
+  },
+  "configuration_environnement": {
+    "variables_obligatoires": [
+      "VAPID_PUBLIC_KEY",
+      "VAPID_PRIVATE_KEY"
+    ],
+    "variables_optionnelles": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_REGION",
+      "S3_BUCKET_NAME",
+      "REDIS_URL"
+    ],
+    "generation_vapid": "npx web-push generate-vapid-keys"
+  },
+  "prerequis_systeme": {
+    "ffmpeg": "ffmpeg version 4.4+ (apt install ffmpeg)",
+    "redis": "Redis 6+ (optionnel, pour la file d'attente)",
+    "node": "Node.js 18+ (déjà requis par Next.js 16)"
+  }
+}

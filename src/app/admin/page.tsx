@@ -94,6 +94,8 @@ export default function AdminDashboard() {
     { title: 'Gérer les ceintures', href: '/admin/belts', color: 'border-yellow-200 hover:bg-yellow-50' },
     { title: 'Gérer les modules', href: '/admin/modules', color: 'border-blue-200 hover:bg-blue-50' },
     { title: 'Gérer les techniques', href: '/admin/techniques', color: 'border-green-200 hover:bg-green-50' },
+    { title: 'Assigner les ceintures', href: '/admin/users', color: 'border-red-200 hover:bg-red-50' },
+    { title: 'Gérer les vidéos', href: '/admin/videos', color: 'border-pink-200 hover:bg-pink-50' },
     { title: 'Voir les statistiques', href: '/admin/stats', color: 'border-purple-200 hover:bg-purple-50' },
   ]
 

@@ -119,7 +119,38 @@ function LoadingState() {
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+function ErrorState({ message, onRetry, isAuthError }: { message: string; onRetry?: () => void; isAuthError?: boolean }) {
+  if (isAuthError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-8 h-8 text-yellow-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Accès réservé</h2>
+          <p className="text-gray-600 mb-6">
+            Connectez-vous pour accéder au programme complet et suivre votre progression.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link
+              href="/connexion"
+              className="inline-flex items-center justify-center px-6 py-3 bg-yellow-500 text-gray-900 font-bold rounded-xl hover:bg-yellow-400 transition-colors"
+            >
+              Se connecter
+            </Link>
+            <Link
+              href="/ceintures"
+              className="inline-flex items-center justify-center px-6 py-3 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 mr-1" />
+              Retour aux ceintures
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
@@ -173,17 +204,24 @@ export default function ModuleDetailPage() {
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthError, setIsAuthError] = useState(false);
 
   const fetchModule = async () => {
     if (!params.id) return;
 
     setLoading(true);
     setError(null);
+    setIsAuthError(false);
 
     try {
       const response = await fetch(`/api/modules/${params.id}`);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          setIsAuthError(true);
+          setError('Authentification requise');
+          return;
+        }
         if (response.status === 404) {
           setModule(null);
           return;
@@ -211,7 +249,7 @@ export default function ModuleDetailPage() {
 
   // Error state
   if (error) {
-    return <ErrorState message={error} onRetry={fetchModule} />;
+    return <ErrorState message={error} onRetry={fetchModule} isAuthError={isAuthError} />;
   }
 
   // Not found state

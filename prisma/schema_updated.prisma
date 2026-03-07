@@ -1,0 +1,422 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MODÈLES D'AUTHENTIFICATION (EXISTANTS)
+// ============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(STUDENT)
+  beltId        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations existantes
+  accounts      Account[]
+  sessions      Session[]
+  progress      UserTechniqueProgress[]
+  videos        UserTechniqueVideo[]
+  belt          Belt?     @relation(fields: [beltId], references: [id])
+  
+  // NOUVEAU: Push notifications
+  pushSubscriptions PushSubscription[]
+  
+  // NOUVEAU: Appareils de l'utilisateur
+  devices       UserDevice[]
+  
+  // NOUVEAU: Progression offline en attente
+  offlineProgressQueue OfflineProgressQueue[]
+  
+  // NOUVEAU: Vidéos téléchargées offline
+  offlineVideos UserOfflineVideo[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// MODÈLES MÉTIER FEKM (EXISTANTS)
+// ============================================
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+model Belt {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String
+  order       Int
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  content  BeltContent?
+  modules  Module[]
+  users    User[]
+}
+
+model BeltContent {
+  id               String   @id @default(cuid())
+  beltId           String   @unique
+  examRequirements String?  @db.Text
+  principles       String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  belt Belt @relation(fields: [beltId], references: [id], onDelete: Cascade)
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  beltId      String
+  code        String
+  name        String
+  description String?  @db.Text
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  belt       Belt        @relation(fields: [beltId], references: [id], onDelete: Cascade)
+  techniques Technique[]
+}
+
+model Technique {
+  id            String   @id @default(cuid())
+  moduleId      String
+  name          String
+  category      TechniqueCategory
+  subCategory   String?
+  description   String?  @db.Text
+  instructions  String?  @db.Text
+  keyPoints     String[]
+  order         Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  module       Module                @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress     UserTechniqueProgress[]
+  videos       TechniqueVideoLink[]
+  userVideos   UserTechniqueVideo[]
+}
+
+enum TechniqueCategory {
+  FRAPPE_DE_FACE
+  FRAPPE_DE_COTE
+  SAISISSEMENTS
+  DEFENSES_SUR_ATTAQUES_PONCTUELLES
+  STRANGULATIONS
+  DEFENSES_SUR_ATTAQUES_CIRCULAIRES
+  ATTAQUES_AU_SOL
+  ATTAQUES_AVEC_ARMES_BLANCHES
+  ATTAQUES_AVEC_BATON
+  ATTAQUES_AVEC_ARMES_A_FEU
+  AUTRES
+}
+
+model UserTechniqueProgress {
+  id          String           @id @default(cuid())
+  userId      String
+  techniqueId String
+  level       ProgressLevel    @default(NON_ACQUIS)
+  notes       String?          @db.Text
+  lastUpdated DateTime         @updatedAt
+  createdAt   DateTime         @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  technique Technique @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, techniqueId])
+}
+
+enum ProgressLevel {
+  NON_ACQUIS
+  EN_COURS_DAPPRENTISSAGE
+  ACQUIS
+  MAITRISE
+}
+
+// ============================================
+// MODÈLES VIDÉO - VERSION AMÉLIORÉE
+// ============================================
+
+model VideoAsset {
+  id           String   @id @default(cuid())
+  filename     String   @unique
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  duration     Int?     // Durée en secondes
+  
+  // NOUVEAU: Métadonnées pour streaming
+  width        Int?     // Largeur en pixels
+  height       Int?     // Hauteur en pixels
+  fps          Float?   // Images par seconde
+  bitrate      Int?     // Bitrate en kbps
+  codec        String?  // Codec vidéo (h264, h265, etc.)
+  
+  // NOUVEAU: Statut de traitement
+  status       VideoStatus @default(PENDING)
+  errorMessage String?     @db.Text
+  
+  // NOUVEAU: Relations avec les variants
+  variants     VideoVariant[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  techniqueLinks TechniqueVideoLink[]
+  userVideos     UserTechniqueVideo[]
+  offlineVideos  UserOfflineVideo[]
+}
+
+enum VideoStatus {
+  PENDING      // En attente de traitement
+  PROCESSING   // En cours de transcodage
+  READY        // Prêt (tous les variants générés)
+  ERROR        // Erreur de traitement
+}
+
+// NOUVEAU: Variants de qualité pour streaming adaptatif
+model VideoVariant {
+  id          String   @id @default(cuid())
+  videoId     String
+  quality     VideoQuality  // 360p, 480p, 720p, 1080p
+  filename    String
+  path        String
+  width       Int
+  height      Int
+  bitrate     Int      // kbps
+  size        Int      // bytes
+  
+  // HLS/DASH
+  hlsPath     String?  // Chemin vers le segment HLS
+  dashPath    String?  // Chemin vers le segment DASH
+  
+  createdAt   DateTime @default(now())
+  
+  video VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  
+  @@unique([videoId, quality])
+}
+
+enum VideoQuality {
+  P360   // 360p - pour 3G
+  P480   // 480p - pour 4G
+  P720   // 720p - pour WiFi
+  P1080  // 1080p - pour WiFi haut débit
+}
+
+model TechniqueVideoLink {
+  id          String   @id @default(cuid())
+  techniqueId String
+  videoId     String
+  type        VideoType
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  technique Technique  @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+  video     VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([techniqueId, videoId])
+}
+
+enum VideoType {
+  COACH
+  DEMONSTRATION
+}
+
+model UserTechniqueVideo {
+  id          String   @id @default(cuid())
+  userId      String
+  techniqueId String
+  videoId     String
+  slot        UserVideoSlot
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  technique Technique  @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+  video     VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, techniqueId, slot])
+}
+
+enum UserVideoSlot {
+  DEBUTANT
+  PROGRESSION
+}
+
+// ============================================
+// NOUVEAU: VIDÉOS OFFLINE
+// ============================================
+
+model UserOfflineVideo {
+  id            String   @id @default(cuid())
+  userId        String
+  videoId       String
+  variantId     String   // Qualité téléchargée
+  
+  // Métadonnées offline
+  size          Int      // Taille en bytes
+  quality       VideoQuality
+  downloadedAt  DateTime @default(now())
+  expiresAt     DateTime? // Expiration optionnelle
+  lastAccessed  DateTime @default(now())
+  accessCount   Int      @default(0)
+  
+  // Sync status
+  syncStatus    SyncStatus @default(SYNCED)
+  
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video   VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, videoId])
+}
+
+enum SyncStatus {
+  SYNCED
+  PENDING_DELETE  // Marqué pour suppression
+  ERROR
+}
+
+// ============================================
+// NOUVEAU: SYNCHRONISATION PROGRESSION OFFLINE
+// ============================================
+
+model OfflineProgressQueue {
+  id          String   @id @default(cuid())
+  userId      String
+  techniqueId String
+  
+  // Données de progression
+  level       ProgressLevel
+  notes       String?  @db.Text
+  
+  // Métadonnées de sync
+  createdAt   DateTime @default(now())
+  syncedAt    DateTime?
+  retryCount  Int      @default(0)
+  error       String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, syncedAt])
+}
+
+// ============================================
+// NOUVEAU: NOTIFICATIONS PUSH
+// ============================================
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  
+  // Données de subscription Web Push
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  
+  // Métadonnées
+  deviceInfo String?  // User agent / device info
+  createdAt DateTime @default(now())
+  lastUsed  DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// ============================================
+// NOUVEAU: APPAREILS UTILISATEUR
+// ============================================
+
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  deviceId    String   @unique // UUID généré côté client
+  deviceName  String?  // Nom personnalisé
+  deviceType  DeviceType // MOBILE, TABLET, DESKTOP
+  platform    String?  // iOS, Android, etc.
+  
+  // Capacités
+  maxOfflineStorage Int?  // En MB, estimation
+  
+  createdAt   DateTime @default(now())
+  lastSyncAt  DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+enum DeviceType {
+  MOBILE
+  TABLET
+  DESKTOP
+}
+
+// ============================================
+// NOUVEAU: JOURNAL D'ACTIVITÉ (pour analytics/debug)
+// ============================================
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String   // video_play, progress_update, download_start, etc.
+  entityType  String?  // video, technique, etc.
+  entityId    String?
+  metadata    Json?    // Données additionnelles
+  createdAt   DateTime @default(now())
+  
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}

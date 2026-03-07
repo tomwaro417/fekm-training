@@ -15,6 +15,7 @@ const RATE_LIMITS = {
   GET: { max: 100, windowMs: 60 * 1000 }, // 100 requêtes/minute
   POST: { max: 20, windowMs: 60 * 1000 }, // 20 requêtes/minute
   PUT: { max: 20, windowMs: 60 * 1000 },
+  PATCH: { max: 20, windowMs: 60 * 1000 },
   DELETE: { max: 10, windowMs: 60 * 1000 },
   default: { max: 100, windowMs: 60 * 1000 },
 }

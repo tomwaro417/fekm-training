@@ -39,6 +39,8 @@ export interface VideoAsset {
   title?: string;
   description?: string;
   createdAt?: string;
+  filename?: string;
+  originalName?: string;
 }
 
 export interface TechniqueVideo {
