@@ -34,6 +34,7 @@
     "lucide-react": "^0.565.0",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
+    "nodemailer": "^8.0.1",
     "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -48,6 +49,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.4",
@@ -56,6 +58,7 @@
     "happy-dom": "^20.8.3",
     "jsdom": "^28.1.0",
     "msw": "^2.12.10",
+    "playwright-core": "^1.58.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.0.18"

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { 
@@ -311,7 +311,7 @@ function VideoSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Slot débutant */}
           <PersonalVideoSlot
-            type="PERSONAL_BEGINNER"
+            type="DEBUTANT"
             label="Vidéo débutant"
             description="Enregistrez votre première tentative"
             userVideos={userVideos}
@@ -322,7 +322,7 @@ function VideoSection({
 
           {/* Slot progression */}
           <PersonalVideoSlot
-            type="PERSONAL_PROGRESSION"
+            type="PROGRESSION"
             label="Vidéo progression"
             description="Comparez vos améliorations"
             userVideos={userVideos}
@@ -340,13 +340,18 @@ function VideoCard({
   video,
   label,
   beltColor,
-  showDownload = false
+  showDownload = false,
+  onReplace
 }: {
   video: VideoAsset;
   label: string;
   beltColor: string;
   showDownload?: boolean;
+  onReplace?: () => void;
 }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const handleDownload = async () => {
     try {
       const response = await fetch(`/api/videos/${video.id}/download`);
@@ -367,10 +372,47 @@ function VideoCard({
     }
   };
 
+  const handlePlay = () => {
+    setIsPlaying(true);
+  };
+
+  // Si on joue la vidéo, afficher le lecteur
+  if (isPlaying) {
+    return (
+      <div className="relative bg-gray-900 rounded-xl overflow-hidden">
+        <video
+          ref={videoRef}
+          src={`/api/videos/${video.id}/stream`}
+          controls
+          autoPlay
+          className="w-full aspect-video"
+          onError={(e) => console.error('Erreur lecture vidéo:', e)}
+        />
+        <button
+          onClick={() => setIsPlaying(false)}
+          className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"
+        >
+          ✕
+        </button>
+        <div className="absolute top-3 left-3">
+          <span
+            className="px-2 py-1 rounded-lg text-xs font-medium text-white"
+            style={{ backgroundColor: beltColor }}
+          >
+            {label}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="group relative bg-gray-900 rounded-xl overflow-hidden">
       {/* Zone vidéo avec aspect ratio */}
-      <div className="relative aspect-video cursor-pointer">
+      <div 
+        className="relative aspect-video cursor-pointer"
+        onClick={handlePlay}
+      >
         {/* Thumbnail ou placeholder */}
         {video.thumbnailUrl ? (
           <img
@@ -413,18 +455,37 @@ function VideoCard({
       </div>
 
       {/* Barre d'actions en dessous de la vidéo */}
-      {showDownload && video.url && (
+      {showDownload && (
         <div className="bg-gray-800 px-4 py-3 flex items-center justify-between">
           <span className="text-sm text-gray-400 truncate flex-1 mr-4">
-            {video.title || 'Vidéo'}
+            {video.title || video.filename || 'Vidéo'}
           </span>
-          <button
-            onClick={handleDownload}
-            className="inline-flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <Download className="w-4 h-4 mr-1.5" />
-            Télécharger
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handlePlay}
+              className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Play className="w-4 h-4 mr-1.5" />
+              Lire
+            </button>
+            {onReplace ? (
+              <button
+                onClick={onReplace}
+                className="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <Upload className="w-4 h-4 mr-1.5" />
+                Remplacer
+              </button>
+            ) : (
+              <button
+                onClick={handleDownload}
+                className="inline-flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <Download className="w-4 h-4 mr-1.5" />
+                Télécharger
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -440,7 +501,7 @@ function PersonalVideoSlot({
   techniqueId,
   onVideoUploaded
 }: {
-  type: 'PERSONAL_BEGINNER' | 'PERSONAL_PROGRESSION';
+  type: 'DEBUTANT' | 'PROGRESSION';
   label: string;
   description: string;
   userVideos: UserTechniqueVideo[];
@@ -449,19 +510,10 @@ function PersonalVideoSlot({
   onVideoUploaded: () => void;
 }) {
   const [showUploader, setShowUploader] = useState(false);
-  const video = userVideos.find(v => v.type === type);
+  // Mapping du slot vers le type attendu par l'interface
+  const video = userVideos.find(v => v.slot === type);
 
-  if (video) {
-    return (
-      <VideoCard
-        video={video.video}
-        label={label}
-        beltColor={beltColor}
-        showDownload={true}
-      />
-    );
-  }
-
+  // Afficher l'uploader si demandé (même si une vidéo existe déjà)
   if (showUploader) {
     return (
       <div className="border-2 border-gray-200 rounded-xl p-4">
@@ -485,6 +537,18 @@ function PersonalVideoSlot({
           Annuler
         </Button>
       </div>
+    );
+  }
+
+  if (video) {
+    return (
+      <VideoCard
+        video={video.video}
+        label={label}
+        beltColor={beltColor}
+        showDownload={true}
+        onReplace={() => setShowUploader(true)}
+      />
     );
   }
 
@@ -565,6 +629,7 @@ function NavigationButtons({
 
 export default function TechniqueDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const { data: session } = useSession();
   const [technique, setTechnique] = useState<Technique | null>(null);
   const [loading, setLoading] = useState(true);
@@ -584,6 +649,13 @@ export default function TechniqueDetailPage() {
       const response = await fetch(`/api/techniques/${params.id}`);
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Redirection vers login si non authentifié
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+          return;
+        }
         if (response.status === 404) {
           throw new Error('Technique non trouvée');
         }
@@ -591,6 +663,8 @@ export default function TechniqueDetailPage() {
       }
 
       const data = await response.json();
+      console.log('Technique data:', data);
+      console.log('User videos:', data.userVideos);
       setTechnique(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');

@@ -53,20 +53,31 @@ async function getHandler(
       return createErrorResponse('NOT_FOUND', 404)
     }
 
-    // Récupérer les vidéos personnelles de l'utilisateur
+    // Récupérer TOUTES les vidéos personnelles de cette technique (pour debug)
     const userVideos = await prisma.userTechniqueVideo.findMany({
       where: {
-        userId,
         techniqueId: validatedId,
       },
       include: {
         video: true,
       },
     })
+    
+    console.log('API - Vidéos trouvées:', userVideos.length, 'pour technique:', validatedId)
+    console.log('API - Détail vidéos:', JSON.stringify(userVideos.map(v => ({ id: v.id, slot: v.slot, userId: v.userId, videoId: v.videoId })), null, 2))
+
+    // Ajouter l'URL de streaming aux vidéos
+    const userVideosWithUrl = userVideos.map(uv => ({
+      ...uv,
+      video: {
+        ...uv.video,
+        url: `/api/videos/${uv.video.id}/stream`,
+      }
+    }))
 
     return NextResponse.json({
       ...technique,
-      userVideos,
+      userVideos: userVideosWithUrl,
     })
   } catch (error) {
     if (error instanceof ZodError) {

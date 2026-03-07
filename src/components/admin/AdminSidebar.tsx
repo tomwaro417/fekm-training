@@ -11,7 +11,9 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Shield
+  Shield,
+  Video,
+  BarChart3
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -20,7 +22,9 @@ const menuItems = [
   { href: '/admin/belts', icon: Award, label: 'Ceintures' },
   { href: '/admin/modules', icon: BookOpen, label: 'Modules' },
   { href: '/admin/techniques', icon: Dumbbell, label: 'Techniques' },
+  { href: '/admin/videos', icon: Video, label: 'Vidéos' },
   { href: '/admin/users', icon: Users, label: 'Utilisateurs' },
+  { href: '/admin/stats', icon: BarChart3, label: 'Statistiques' },
   { href: '/admin/settings', icon: Settings, label: 'Paramètres' },
 ]
 

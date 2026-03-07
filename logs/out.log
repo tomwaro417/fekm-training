@@ -1,36 +1,32 @@
-2026-03-05 14:11:38 +00:00: ▲ Next.js 16.1.6
-2026-03-05 14:11:38 +00:00: - Local:         http://localhost:3000
-2026-03-05 14:11:38 +00:00: - Network:       http://0.0.0.0:3000
-2026-03-05 14:11:38 +00:00: 
-2026-03-05 14:11:38 +00:00: ✓ Starting...
-2026-03-05 14:11:39 +00:00: ✓ Ready in 856ms
-2026-03-05 14:14:53 +00:00: ▲ Next.js 16.1.6
-2026-03-05 14:14:53 +00:00: - Local:         http://localhost:3000
-2026-03-05 14:14:53 +00:00: - Network:       http://0.0.0.0:3000
-2026-03-05 14:14:53 +00:00: 
-2026-03-05 14:14:53 +00:00: ✓ Starting...
-2026-03-05 14:14:54 +00:00: ✓ Ready in 875ms
-2026-03-05 14:16:01 +00:00: ▲ Next.js 16.1.6
-2026-03-05 14:16:01 +00:00: - Local:         http://localhost:3000
-2026-03-05 14:16:01 +00:00: - Network:       http://0.0.0.0:3000
-2026-03-05 14:16:01 +00:00: 
-2026-03-05 14:16:01 +00:00: ✓ Starting...
-2026-03-05 14:16:02 +00:00: ✓ Ready in 844ms
-2026-03-05 14:21:26 +00:00: ▲ Next.js 16.1.6
-2026-03-05 14:21:26 +00:00: - Local:         http://localhost:3000
-2026-03-05 14:21:26 +00:00: - Network:       http://0.0.0.0:3000
-2026-03-05 14:21:26 +00:00: 
-2026-03-05 14:21:26 +00:00: ✓ Starting...
-2026-03-05 14:21:27 +00:00: ✓ Ready in 848ms
-2026-03-06 05:18:09 +00:00: ▲ Next.js 16.1.6
-2026-03-06 05:18:09 +00:00: - Local:         http://localhost:3000
-2026-03-06 05:18:09 +00:00: - Network:       http://0.0.0.0:3000
-2026-03-06 05:18:09 +00:00: 
-2026-03-06 05:18:09 +00:00: ✓ Starting...
-2026-03-06 05:18:10 +00:00: ✓ Ready in 857ms
-2026-03-06 05:25:41 +00:00: ▲ Next.js 16.1.6
-2026-03-06 05:25:41 +00:00: - Local:         http://localhost:3000
-2026-03-06 05:25:41 +00:00: - Network:       http://0.0.0.0:3000
-2026-03-06 05:25:41 +00:00: 
-2026-03-06 05:25:41 +00:00: ✓ Starting...
-2026-03-06 05:25:42 +00:00: ✓ Ready in 848ms
+
+> fekm-app@0.1.0 start /home/tomwaro/.openclaw/workspace/fekm-training
+> next start
+
+▲ Next.js 16.1.6
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.7:3000
+
+✓ Starting...
+✓ Ready in 808ms
+API - Vidéos trouvées: 3 pour technique: cmmbmy4sa000lff6dxvkw9ehw
+API - Détail vidéos: [
+  {
+    "id": "cmmgdxeei0002cp6ukh1onfcz",
+    "slot": "PROGRESSION",
+    "userId": "cmmdgxh3n0000wg54ugdc35u2",
+    "videoId": "cmmgef35v0006e2xfapsnn3lt"
+  },
+  {
+    "id": "cmmgf8joo0002hupnqwz4ecaf",
+    "slot": "DEBUTANT",
+    "userId": "cmmbmy5as009tff6dsx48neqo",
+    "videoId": "cmmgf8job0000hupnvnpeel16"
+  },
+  {
+    "id": "cmmgdrde40005qh2tlf83wu7f",
+    "slot": "DEBUTANT",
+    "userId": "cmmdgxh3n0000wg54ugdc35u2",
+    "videoId": "cmmgf965w0003hupnejy67q6c"
+  }
+]
+ ELIFECYCLE  Command failed.

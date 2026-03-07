@@ -18,10 +18,13 @@ export function Header() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const isAdmin = session?.user?.role === 'ADMIN';
+
   const navigation = [
     { name: 'Accueil', href: '/', icon: Home },
     { name: 'Ceintures', href: '/ceintures', icon: Trophy },
     { name: 'Dashboard', href: '/dashboard', icon: User, protected: true },
+    { name: 'Admin', href: '/admin', icon: Shield, protected: true, adminOnly: true },
   ];
 
   return (
@@ -30,10 +33,12 @@ export function Header() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+            <Link href="/" className="flex items-center space-x-3">
+              <img
+                src="/logo-fekm.jpg"
+                alt="FEKM Krav Maga"
+                className="w-10 h-10 rounded-full object-cover border-2 border-yellow-500 shadow-lg"
+              />
               <span className="text-xl font-bold text-gray-900">FEKM Training</span>
             </Link>
           </div>
@@ -42,6 +47,7 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => {
               if (item.protected && !session) return null;
+              if (item.adminOnly && !isAdmin) return null;
               const Icon = item.icon;
               return (
                 <Link
@@ -108,6 +114,7 @@ export function Header() {
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               if (item.protected && !session) return null;
+              if (item.adminOnly && !isAdmin) return null;
               const Icon = item.icon;
               return (
                 <Link

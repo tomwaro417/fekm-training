@@ -56,6 +56,8 @@ model User {
   progress      UserTechniqueProgress[]
   videos        UserTechniqueVideo[]
   belt          Belt?     @relation(fields: [beltId], references: [id])
+  beltHistory   BeltHistory[] @relation("UserBeltHistory") // Historique des changements de ceinture
+  promotions    BeltHistory[] @relation("PromotedBy") // Ceintures assignées par cet admin
 }
 
 model VerificationToken {
@@ -86,9 +88,30 @@ model Belt {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  content  BeltContent?
-  modules  Module[]
-  users    User[]
+  content     BeltContent?
+  modules     Module[]
+  users       User[]
+  beltHistory BeltHistory[]
+}
+
+// Historique des changements de ceinture
+model BeltHistory {
+  id            String    @id @default(cuid())
+  userId        String
+  beltId        String
+  promotedBy    String?   // ID de l'admin/instructeur qui a fait la promotion
+  promotionDate DateTime  @default(now())
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  user         User  @relation("UserBeltHistory", fields: [userId], references: [id], onDelete: Cascade)
+  belt         Belt  @relation(fields: [beltId], references: [id], onDelete: Cascade)
+  promotedByUser User? @relation("PromotedBy", fields: [promotedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([beltId])
+  @@index([promotedBy])
 }
 
 model BeltContent {

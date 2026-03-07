@@ -12,7 +12,8 @@ const credentialsSchema = z.object({
 })
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  // Remove PrismaAdapter when using JWT strategy with credentials
+  // adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: 'jwt',
   },
@@ -34,7 +35,12 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
-          const { email, password } = credentialsSchema.parse(credentials)
+          if (!credentials?.email || !credentials?.password) {
+            return null
+          }
+          
+          const email = credentials.email
+          const password = credentials.password
 
           const user = await prisma.user.findUnique({
             where: { email },
@@ -59,7 +65,7 @@ export const authOptions: NextAuthOptions = {
             beltId: user.beltId ?? undefined,
             beltName: user.belt?.name,
           }
-        } catch {
+        } catch (error) {
           return null
         }
       },
