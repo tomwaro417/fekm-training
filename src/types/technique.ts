@@ -21,8 +21,6 @@ export type TechniqueCategory =
   | 'SOL'
   | 'AUTRE';
 
-export type VideoType = 'COACH' | 'DEMONSTRATION';
-
 export type PersonalVideoType = 'DEBUTANT' | 'PROGRESSION';
 
 export type ProgressLevel = 'NON_ACQUIS' | 'EN_COURS_DAPPRENTISSAGE' | 'ACQUIS' | 'MAITRISE';
@@ -45,7 +43,7 @@ export interface VideoAsset {
 
 export interface TechniqueVideo {
   video: VideoAsset;
-  type: VideoType;
+  order?: number;
 }
 
 export interface UserTechniqueVideo {
@@ -167,13 +165,6 @@ export const CATEGORY_LABELS: Record<TechniqueCategory, string> = {
   DEFENSE_SAISIE: 'Défenses contre saisies',
   SOL: 'Techniques au sol',
   AUTRE: 'Autres techniques',
-};
-
-export const VIDEO_TYPE_LABELS: Record<VideoType | PersonalVideoType, string> = {
-  COACH: 'Démonstration Coach',
-  DEMONSTRATION: 'Démonstration',
-  DEBUTANT: 'Ma vidéo - Débutant',
-  PROGRESSION: 'Ma vidéo - Progression',
 };
 
 // ============================================

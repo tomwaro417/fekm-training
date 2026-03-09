@@ -39,7 +39,7 @@ const videoMetadataSchema = z.object({
   techniqueId: z.string().uuid('ID technique invalide').optional(),
   beltId: z.string().uuid('ID ceinture invalide').optional(),
   moduleId: z.string().uuid('ID module invalide').optional(),
-  type: z.enum(['COACH', 'DEMONSTRATION']).default('COACH'),
+  // Type supprimé - toutes les vidéos sont des démonstrations
   isPublic: z.boolean().default(false),
   tags: z.string().optional(), // JSON stringifié
 })
@@ -157,7 +157,7 @@ async function postHandler(request: NextRequest) {
       techniqueId: formData.get('techniqueId') || undefined,
       beltId: formData.get('beltId') || undefined,
       moduleId: formData.get('moduleId') || undefined,
-      type: formData.get('type') || 'COACH',
+      // type supprimé - fusion en démonstration unique
       isPublic: formData.get('isPublic') === 'true',
       tags: formData.get('tags') || undefined,
     })

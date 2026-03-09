@@ -20,7 +20,7 @@ import { VideoLinkManager } from './VideoLinkManager'
 import { Button } from '@/components/ui/Button'
 import { showToast } from './Toast'
 
-type FilterType = 'ALL' | 'COACH' | 'DEMONSTRATION' | 'UNLINKED'
+type FilterType = 'ALL' | 'UNLINKED'
 type StatusFilter = 'ALL' | 'READY' | 'PROCESSING' | 'ERROR'
 
 export function VideoManager() {

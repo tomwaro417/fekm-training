@@ -11,7 +11,6 @@ import { z } from 'zod'
 
 const linkSchema = z.object({
   techniqueId: z.string().uuid('ID technique invalide'),
-  type: z.enum(['COACH', 'DEMONSTRATION']).default('COACH'),
 })
 
 // ============================================
@@ -55,7 +54,7 @@ export async function POST(
       return createErrorResponse('VALIDATION_ERROR', 400, validation.error.issues)
     }
 
-    const { techniqueId, type } = validation.data
+    const { techniqueId } = validation.data
 
     // Vérifier que la technique existe
     const technique = await prisma.technique.findUnique({
@@ -72,31 +71,7 @@ export async function POST(
     )
 
     if (existingLink) {
-      // Mettre à jour le type si nécessaire
-      if (existingLink.type !== type) {
-        const updatedLink = await prisma.techniqueVideoLink.update({
-          where: { id: existingLink.id },
-          data: { type },
-          include: {
-            technique: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        })
-
-        return NextResponse.json({
-          success: true,
-          message: 'Lien mis à jour avec succès',
-          data: {
-            link: updatedLink,
-          },
-        })
-      }
-
-      return createErrorResponse('BAD_REQUEST', 409, 'Cette vidéo est déjà liée à cette technique')
+      return createErrorResponse('CONFLICT', 409, 'Cette vidéo est déjà liée à cette technique')
     }
 
     // Déterminer l'ordre pour cette technique
@@ -109,7 +84,6 @@ export async function POST(
       data: {
         videoId,
         techniqueId,
-        type,
         order: existingLinks,
       },
       include: {

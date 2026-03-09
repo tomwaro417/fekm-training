@@ -14,7 +14,6 @@ const querySchema = z.object({
   page: z.string().optional().transform(v => parseInt(v || '1')),
   limit: z.string().optional().transform(v => parseInt(v || '20')),
   search: z.string().optional(),
-  type: z.enum(['COACH', 'DEMONSTRATION']).optional(),
   status: z.enum(['PROCESSING', 'READY', 'ERROR']).optional(),
   unlinked: z.string().optional().transform(v => v === 'true'),
 })
@@ -103,15 +102,8 @@ async function getHandler(request: NextRequest) {
       prisma.videoAsset.count({ where }),
     ])
 
-    // Filtrer par type si spécifié
-    let filteredVideos = videos
-    if (type) {
-      filteredVideos = videos.filter(v => 
-        v.techniqueLinks.some(link => link.type === type)
-      )
-    }
-
     // Filtrer les vidéos non liées si demandé
+    let filteredVideos = videos
     if (unlinked) {
       filteredVideos = videos.filter(v => v.techniqueLinks.length === 0)
     }
@@ -129,7 +121,6 @@ async function getHandler(request: NextRequest) {
           duration: video.duration,
           size: video.size,
           createdAt: video.createdAt,
-          type: video.techniqueLinks[0]?.type || 'COACH',
           status: video.status,
           thumbnailUrl: video.thumbnailPath,
           tags: video.tags || [],

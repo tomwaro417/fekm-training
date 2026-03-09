@@ -243,7 +243,6 @@ model TechniqueVideoLink {
   id          String   @id @default(cuid())
   techniqueId String
   videoId     String
-  type        VideoType // COACH ou DEMONSTRATION
   order       Int      @default(0)
   createdAt   DateTime @default(now())
 
@@ -252,11 +251,6 @@ model TechniqueVideoLink {
   video     VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@unique([techniqueId, videoId])
-}
-
-enum VideoType {
-  COACH          // Vidéo du coach/instructeur
-  DEMONSTRATION  // Démonstration officielle
 }
 
 model UserTechniqueVideo {

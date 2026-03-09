@@ -31,7 +31,7 @@ interface Video {
   duration?: number
   size: number
   createdAt: string
-  type: 'COACH' | 'DEMONSTRATION'
+  type?: string // Supprimé - toutes les vidéos sont des démonstrations
   status: 'PROCESSING' | 'READY' | 'ERROR'
   thumbnailUrl?: string
   technique?: {
@@ -135,19 +135,7 @@ export function VideoList({
     }
   }
 
-  const getTypeBadge = (type: Video['type']) => {
-    return type === 'COACH' ? (
-      <span className="inline-flex items-center px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-        <User className="w-3 h-3 mr-1" />
-        Coach
-      </span>
-    ) : (
-      <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-        <Film className="w-3 h-3 mr-1" />
-        Démo
-      </span>
-    )
-  }
+  // getTypeBadge supprimé - plus de distinction Coach/Démo
 
   if (loading) {
     return (
@@ -242,7 +230,6 @@ export function VideoList({
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {getTypeBadge(video.type)}
                   {getStatusBadge(video.status)}
                 </div>
               </div>
