@@ -17,12 +17,33 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-const menuItems = [
+interface SubItem {
+  href: string
+  label: string
+}
+
+interface MenuItem {
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  subItems?: SubItem[]
+}
+
+const menuItems: MenuItem[] = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/belts', icon: Award, label: 'Ceintures' },
   { href: '/admin/modules', icon: BookOpen, label: 'Modules' },
   { href: '/admin/techniques', icon: Dumbbell, label: 'Techniques' },
-  { href: '/admin/videos', icon: Video, label: 'Vidéos' },
+  { 
+    href: '/admin/videos', 
+    icon: Video, 
+    label: 'Vidéos',
+    subItems: [
+      { href: '/admin/videos', label: 'Par technique' },
+      { href: '/admin/videos/all', label: 'Toutes les vidéos' },
+      { href: '/admin/videos/upload', label: 'Uploader' },
+    ]
+  },
   { href: '/admin/users', icon: Users, label: 'Utilisateurs' },
   { href: '/admin/stats', icon: BarChart3, label: 'Statistiques' },
   { href: '/admin/settings', icon: Settings, label: 'Paramètres' },
@@ -56,21 +77,46 @@ export function AdminSidebar() {
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
           const Icon = item.icon
+          const hasSubItems = item.subItems && item.subItems.length > 0
+          const isExpanded = hasSubItems && isActive
           
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
-                isActive 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-              } ${collapsed ? 'justify-center' : ''}`}
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                  isActive 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                } ${collapsed ? 'justify-center' : ''}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+              
+              {/* Sous-menu */}
+              {!collapsed && hasSubItems && isExpanded && (
+                <div className="ml-4 mt-1 space-y-1">
+                  {item.subItems?.map((subItem) => {
+                    const isSubActive = pathname === subItem.href
+                    return (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isSubActive 
+                            ? 'bg-blue-500/50 text-white' 
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                        }`}
+                      >
+                        {subItem.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           )
         })}
       </nav>

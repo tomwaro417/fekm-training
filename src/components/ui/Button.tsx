@@ -2,13 +2,14 @@ import { ButtonHTMLAttributes, forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost'
+  variant?: 'default' | 'outline' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   asChild?: boolean
+  loading?: boolean
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'md', asChild = false, ...props }, ref) => {
+  ({ className, variant = 'default', size = 'md', asChild = false, loading = false, children, disabled, ...props }, ref) => {
     return (
       <button
         className={cn(
@@ -17,6 +18,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             'bg-blue-600 text-white hover:bg-blue-700': variant === 'default',
             'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50': variant === 'outline',
             'hover:bg-gray-100': variant === 'ghost',
+            'bg-red-600 text-white hover:bg-red-700': variant === 'danger',
             'h-8 px-3 text-sm': size === 'sm',
             'h-10 px-4 py-2': size === 'md',
             'h-12 px-6 text-lg': size === 'lg',
@@ -24,8 +26,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         ref={ref}
+        disabled={disabled || loading}
         {...props}
-      />
+      >
+        {loading && (
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+        )}
+        {children}
+      </button>
     )
   }
 )

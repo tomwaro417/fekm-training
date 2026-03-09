@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { 
   Video, 
@@ -12,7 +13,8 @@ import {
   Film,
   X,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  List
 } from 'lucide-react'
 import { ToastContainer, showToast } from '@/components/admin/Toast'
 
@@ -47,6 +49,7 @@ interface Technique {
 }
 
 export default function VideoManagementPage() {
+  const router = useRouter()
   const { data: session } = useSession()
   const [belts, setBelts] = useState<Belt[]>([])
   const [modules, setModules] = useState<Module[]>([])
@@ -203,9 +206,18 @@ export default function VideoManagementPage() {
       <ToastContainer />
       
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des vidéos</h1>
-        <p className="text-gray-600 mt-2">Uploadez les vidéos du coach et des démonstrations</p>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des vidéos</h1>
+          <p className="text-gray-600 mt-2">Uploadez les vidéos du coach et des démonstrations</p>
+        </div>
+        <button
+          onClick={() => router.push('/admin/videos/all')}
+          className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          <List className="w-4 h-4 mr-2" />
+          Voir toutes les vidéos
+        </button>
       </div>
 
       {/* Filtres */}
@@ -293,7 +305,7 @@ export default function VideoManagementPage() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-500 mb-4">
-                          {technique.module.code} - {technique.module.belt.name}
+                          {technique.module?.code} - {technique.module?.belt?.name}
                         </p>
                         
                         {/* Vidéos existantes */}

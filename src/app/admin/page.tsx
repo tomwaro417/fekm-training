@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { 
   Award, 
@@ -42,14 +44,22 @@ interface RecentActivity {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [stats, setStats] = useState<Stats | null>(null)
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchStats()
-    fetchRecentActivity()
-  }, [])
+    if (status === 'unauthenticated') {
+      router.push('/login')
+      return
+    }
+    if (status === 'authenticated') {
+      fetchStats()
+      fetchRecentActivity()
+    }
+  }, [status, router])
 
   async function fetchStats() {
     try {
@@ -215,12 +225,16 @@ export default function AdminDashboard() {
     return `Il y a ${days}j`
   }
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     )
+  }
+
+  if (status === 'unauthenticated') {
+    return null
   }
 
   return (

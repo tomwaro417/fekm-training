@@ -16,7 +16,9 @@ export default withAuth(
   {
     callbacks: {
       authorized({ token }) {
-        return token?.role === 'ADMIN'
+        // Autoriser si l'utilisateur a un token (vérification du role faite dans le middleware)
+        // Cela évite les problèmes d'hydratation côté client
+        return !!token
       },
     },
   }

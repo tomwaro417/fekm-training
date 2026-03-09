@@ -1,7 +1,9 @@
 'use client'
 
-import { ProgressLevel } from '@prisma/client'
 import Link from 'next/link'
+
+// Type local pour éviter les problèmes d'import côté client
+type ProgressLevel = 'NON_ACQUIS' | 'EN_COURS_DAPPRENTISSAGE' | 'ACQUIS' | 'MAITRISE'
 
 interface RecentTechniquesProps {
   progress: Array<{

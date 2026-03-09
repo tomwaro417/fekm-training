@@ -1,0 +1,12 @@
+// Export de tous les composants admin
+export { AdminSidebar } from './AdminSidebar'
+export { Pagination, DataTable, Tabs, Breadcrumb } from './DataDisplay'
+export { Input, Select, TextArea, Card, Badge, ProgressBar, SearchInput, EmptyState, StatCard } from './FormComponents'
+export { Modal } from './Modal'
+export { ToastContainer, showToast } from './Toast'
+export { VideoUpload, CameraCapture } from './VideoUpload'
+export { VideoList, type Video } from './VideoList'
+export { VideoMetadataEditor } from './VideoMetadataEditor'
+export { VideoPreview } from './VideoPreview'
+export { VideoLinkManager } from './VideoLinkManager'
+export { VideoManager } from './VideoManager'

@@ -4,7 +4,23 @@ import { useEffect, useState } from 'react'
 import { Plus, Pencil, Trash2, Search, Filter, X } from 'lucide-react'
 import { Modal, ConfirmModal } from '@/components/admin/Modal'
 import { ToastContainer, showToast } from '@/components/admin/Toast'
-import { TechniqueCategory } from '@prisma/client'
+
+// Enum TechniqueCategory local pour éviter les problèmes d'import côté client
+const TechniqueCategory = {
+  FRAPPE_DE_FACE: 'FRAPPE_DE_FACE',
+  FRAPPE_DE_COTE: 'FRAPPE_DE_COTE',
+  SAISISSEMENTS: 'SAISISSEMENTS',
+  DEFENSES_SUR_ATTAQUES_PONCTUELLES: 'DEFENSES_SUR_ATTAQUES_PONCTUELLES',
+  STRANGULATIONS: 'STRANGULATIONS',
+  DEFENSES_SUR_ATTAQUES_CIRCULAIRES: 'DEFENSES_SUR_ATTAQUES_CIRCULAIRES',
+  ATTAQUES_AU_SOL: 'ATTAQUES_AU_SOL',
+  ATTAQUES_AVEC_ARMES_BLANCHES: 'ATTAQUES_AVEC_ARMES_BLANCHES',
+  ATTAQUES_AVEC_BATON: 'ATTAQUES_AVEC_BATON',
+  ATTAQUES_AVEC_ARMES_A_FEU: 'ATTAQUES_AVEC_ARMES_A_FEU',
+  AUTRES: 'AUTRES',
+} as const
+
+type TechniqueCategory = typeof TechniqueCategory[keyof typeof TechniqueCategory]
 
 const categories = Object.values(TechniqueCategory)
 

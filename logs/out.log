@@ -7,26 +7,5 @@
 - Network:       http://192.168.1.7:3000
 
 ✓ Starting...
-✓ Ready in 808ms
-API - Vidéos trouvées: 3 pour technique: cmmbmy4sa000lff6dxvkw9ehw
-API - Détail vidéos: [
-  {
-    "id": "cmmgdxeei0002cp6ukh1onfcz",
-    "slot": "PROGRESSION",
-    "userId": "cmmdgxh3n0000wg54ugdc35u2",
-    "videoId": "cmmgef35v0006e2xfapsnn3lt"
-  },
-  {
-    "id": "cmmgf8joo0002hupnqwz4ecaf",
-    "slot": "DEBUTANT",
-    "userId": "cmmbmy5as009tff6dsx48neqo",
-    "videoId": "cmmgf8job0000hupnvnpeel16"
-  },
-  {
-    "id": "cmmgdrde40005qh2tlf83wu7f",
-    "slot": "DEBUTANT",
-    "userId": "cmmdgxh3n0000wg54ugdc35u2",
-    "videoId": "cmmgf965w0003hupnejy67q6c"
-  }
-]
+✓ Ready in 804ms
  ELIFECYCLE  Command failed.

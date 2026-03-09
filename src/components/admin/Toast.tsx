@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface Toast {
   id: string
@@ -10,13 +10,19 @@ interface Toast {
 
 let toastListeners: ((toasts: Toast[]) => void)[] = []
 let toasts: Toast[] = []
+let toastIdCounter = 0
 
 function notifyListeners() {
   toastListeners.forEach(listener => listener([...toasts]))
 }
 
+function generateToastId(): string {
+  toastIdCounter += 1
+  return `toast-${toastIdCounter}-${Date.now()}`
+}
+
 export function showToast(message: string, type: Toast['type'] = 'info') {
-  const id = Math.random().toString(36).substring(7)
+  const id = generateToastId()
   toasts = [...toasts, { id, message, type }]
   notifyListeners()
   

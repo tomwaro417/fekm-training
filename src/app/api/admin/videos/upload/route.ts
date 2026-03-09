@@ -230,9 +230,14 @@ async function postHandler(request: NextRequest) {
       data: {
         filename,
         originalName: file.name,
+        title: metadata.title !== file.name ? metadata.title : null,
+        description: metadata.description,
+        tags: parseTags(metadata.tags),
         mimeType: file.type,
         size: file.size,
         path: `uploads/videos/${filename}`,
+        status: 'READY', // TODO: Mettre PROCESSING quand on aura un job de traitement
+        uploadedById: session.user.id,
         // La durée sera extraite plus tard par un job de traitement
       },
     })

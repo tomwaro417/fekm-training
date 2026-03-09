@@ -55,6 +55,7 @@ model User {
   sessions      Session[]
   progress      UserTechniqueProgress[]
   videos        UserTechniqueVideo[]
+  uploadedVideos VideoAsset[] // Vidéos uploadées par l'utilisateur
   belt          Belt?     @relation(fields: [beltId], references: [id])
   beltHistory   BeltHistory[] @relation("UserBeltHistory") // Historique des changements de ceinture
   promotions    BeltHistory[] @relation("PromotedBy") // Ceintures assignées par cet admin
@@ -202,20 +203,40 @@ enum ProgressLevel {
 // MODÈLES VIDÉO
 // ============================================
 
+enum VideoStatus {
+  PROCESSING
+  READY
+  ERROR
+}
+
 model VideoAsset {
-  id          String   @id @default(cuid())
-  filename    String
+  id           String      @id @default(cuid())
+  filename     String
   originalName String
-  mimeType    String
-  size        Int
-  path        String   // Chemin relatif dans uploads/
-  duration    Int?     // Durée en secondes
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  title        String?     // Titre personnalisé
+  description  String?     @db.Text
+  tags         String[]    // Tags pour la recherche
+  mimeType     String
+  size         Int
+  path         String      // Chemin relatif dans uploads/
+  duration     Int?        // Durée en secondes
+  thumbnailPath String?    // Chemin de la vignette
+  resolution   String?     // Résolution (1080p, 720p, etc.)
+  status       VideoStatus @default(PROCESSING)
+  processedAt  DateTime?   // Date de fin de traitement
+  viewCount    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   // Relations
+  uploadedById String?     // ID de l'utilisateur qui a uploadé
+  uploadedBy   User?       @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
   techniqueLinks TechniqueVideoLink[]
   userVideos     UserTechniqueVideo[]
+
+  @@index([uploadedById])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model TechniqueVideoLink {
