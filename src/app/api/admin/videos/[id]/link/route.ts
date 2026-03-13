@@ -71,7 +71,7 @@ export async function POST(
     )
 
     if (existingLink) {
-      return createErrorResponse('CONFLICT', 409, 'Cette vidéo est déjà liée à cette technique')
+      return createErrorResponse('VALIDATION_ERROR', 409, 'Cette vidéo est déjà liée à cette technique')
     }
 
     // Déterminer l'ordre pour cette technique
@@ -118,7 +118,7 @@ export async function POST(
       userId: session.user.id,
       videoId,
       techniqueId,
-      type,
+      type: 'ADMIN_LINK',
     })
 
     return NextResponse.json({

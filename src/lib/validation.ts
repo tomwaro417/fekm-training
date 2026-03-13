@@ -109,6 +109,21 @@ export const techniqueQuerySchema = z.object({
   includeVideos: z.coerce.boolean().optional(),
 })
 
+/**
+ * Schéma pour la recherche
+ */
+export const searchQuerySchema = z.object({
+  q: z.string().min(2, 'La recherche doit contenir au moins 2 caractères'),
+})
+
+/**
+ * Schéma pour les notes
+ */
+export const noteSchema = z.object({
+  techniqueId: idSchema,
+  content: z.string().max(5000, 'La note ne peut pas dépasser 5000 caractères'),
+})
+
 // ============================================================================
 // Types exportés
 // ============================================================================

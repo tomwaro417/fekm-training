@@ -23,8 +23,12 @@ import {
   Save,
   Info,
   Download,
-  User
+  User,
+  StickyNote,
+  Trash2,
+  Edit3
 } from 'lucide-react';
+import { useNotes } from '@/hooks/useNotes';
 import { Button } from '@/components/ui/Button';
 import { VideoUploader } from '@/components/training/VideoUploader';
 import { 
@@ -190,7 +194,7 @@ function ProgressSection({
           onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           placeholder="Ajoutez vos remarques, points à améliorer..."
           rows={4}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none transition-all"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none transition-all text-black placeholder-gray-400"
         />
       </div>
 
@@ -247,25 +251,26 @@ function VideoSection({
   techniqueId: string;
   onVideoUploaded: () => void;
 }) {
-  const coachVideos = videos.filter(v => v.type === 'COACH');
-  const demoVideos = videos.filter(v => v.type === 'DEMONSTRATION');
+  // Toutes les vidéos sont traitées de la même manière
+  const allVideos = videos;
 
   return (
     <div className="space-y-8">
       {/* Vidéo du Coach - Section dédiée */}
+      {/* Vidéos de la technique */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <User className="w-5 h-5 mr-2" style={{ color: beltColor }} />
-          Vidéo du Coach
+          <Video className="w-5 h-5 mr-2" style={{ color: beltColor }} />
+          Vidéos de la technique
         </h3>
 
-        {coachVideos.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {coachVideos.map((video, index) => (
+        {allVideos.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {allVideos.map((video, index) => (
               <VideoCard
-                key={`coach-${index}`}
+                key={`video-${index}`}
                 video={video.video}
-                label="Démonstration par le coach"
+                label={`Vidéo ${index + 1}`}
                 beltColor={beltColor}
                 showDownload={true}
               />
@@ -273,33 +278,11 @@ function VideoSection({
           </div>
         ) : (
           <div className="bg-gray-50 rounded-xl p-8 text-center">
-            <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Aucune vidéo du coach disponible pour cette technique.</p>
+            <Video className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Aucune vidéo disponible pour cette technique.</p>
           </div>
         )}
       </div>
-
-      {/* Vidéos de Démonstration */}
-      {demoVideos.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Video className="w-5 h-5 mr-2" style={{ color: beltColor }} />
-            Démonstrations
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {demoVideos.map((video, index) => (
-              <VideoCard
-                key={`demo-${index}`}
-                video={video.video}
-                label={`Démonstration ${index + 1}`}
-                beltColor={beltColor}
-                showDownload={true}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Vidéos personnelles */}
       <div>
@@ -576,6 +559,197 @@ function PersonalVideoSlot({
 }
 
 // formatDuration is imported from @/types/technique
+
+function NotesSection({
+  techniqueId,
+  beltColor,
+}: {
+  techniqueId: string;
+  beltColor: string;
+}) {
+  const { currentNote, isLoading, isSaving, error, saveNote, deleteNote } = useNotes(techniqueId);
+  const [noteContent, setNoteContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Initialiser le contenu quand la note est chargée
+  useEffect(() => {
+    if (currentNote) {
+      setNoteContent(currentNote.content);
+    } else {
+      setNoteContent('');
+    }
+  }, [currentNote]);
+
+  const handleSave = async () => {
+    if (!noteContent.trim()) {
+      // Si vide et qu'une note existe, la supprimer
+      if (currentNote?.id) {
+        try {
+          await deleteNote(currentNote.id);
+          setNoteContent('');
+          setIsEditing(false);
+        } catch {
+          // Erreur gérée par le hook
+        }
+      }
+      return;
+    }
+
+    try {
+      await saveNote(techniqueId, noteContent);
+      setSaveSuccess(true);
+      setIsEditing(false);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch {
+      // Erreur gérée par le hook
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentNote?.id) return;
+    
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
+      try {
+        await deleteNote(currentNote.id);
+        setNoteContent('');
+        setIsEditing(false);
+      } catch {
+        // Erreur gérée par le hook
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    setNoteContent(currentNote?.content || '');
+    setIsEditing(false);
+  };
+
+  // Mode lecture - note existante
+  if (!isEditing && currentNote?.content) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: `${beltColor}15` }}
+            >
+              <StickyNote className="w-5 h-5" style={{ color: beltColor }} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Ma note</h3>
+              <p className="text-sm text-gray-500">
+                {currentNote.updatedAt 
+                  ? `Modifiée le ${new Date(currentNote.updatedAt).toLocaleDateString('fr-FR')}`
+                  : 'Créée récemment'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Modifier"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Supprimer"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
+          <p className="text-gray-700 whitespace-pre-wrap">{currentNote.content}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mode édition
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div className="flex items-center space-x-3 mb-4">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: `${beltColor}15` }}
+        >
+          <StickyNote className="w-5 h-5" style={{ color: beltColor }} />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            {currentNote?.content ? 'Modifier ma note' : 'Ajouter une note'}
+          </h3>
+          <p className="text-sm text-gray-500">
+            {currentNote?.content 
+              ? 'Modifiez vos observations sur cette technique'
+              : 'Notez vos observations, points à retenir...'}
+          </p>
+        </div>
+      </div>
+
+      <textarea
+        value={noteContent}
+        onChange={(e) => setNoteContent(e.target.value)}
+        placeholder="Écrivez vos notes personnelles ici..."
+        rows={5}
+        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 resize-none transition-all mb-4 text-black placeholder-gray-400"
+      />
+
+      {/* Messages */}
+      {error && (
+        <div className="flex items-center space-x-2 text-red-600 text-sm mb-4 p-3 bg-red-50 rounded-lg">
+          <AlertCircle className="w-4 h-4" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {saveSuccess && (
+        <div className="flex items-center space-x-2 text-green-600 text-sm mb-4 p-3 bg-green-50 rounded-lg">
+          <CheckCircle className="w-4 h-4" />
+          <span>Note sauvegardée !</span>
+        </div>
+      )}
+
+      {/* Boutons */}
+      <div className="flex items-center justify-end space-x-3">
+        {isEditing && (
+          <Button
+            variant="ghost"
+            onClick={handleCancel}
+            disabled={isSaving}
+          >
+            Annuler
+          </Button>
+        )}
+        <Button
+          onClick={handleSave}
+          disabled={isSaving || (!noteContent.trim() && !currentNote?.content)}
+          style={{ 
+            backgroundColor: noteContent.trim() || currentNote?.content ? beltColor : undefined,
+          }}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Sauvegarde...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              {currentNote?.content ? 'Mettre à jour' : 'Sauvegarder'}
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function NavigationButtons({ 
   currentOrder, 
@@ -864,6 +1038,14 @@ export default function TechniqueDetailPage() {
                   </Button>
                 </Link>
               </div>
+            )}
+
+            {/* Section Notes personnelles */}
+            {isLoggedIn && (
+              <NotesSection
+                techniqueId={technique.id}
+                beltColor={beltColor}
+              />
             )}
 
             {/* Info module */}

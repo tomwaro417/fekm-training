@@ -11,8 +11,10 @@ import {
   ChevronDown,
   Trophy,
   Home,
-  Shield
+  Shield,
+  StickyNote
 } from 'lucide-react';
+import { SearchBar } from './SearchBar';
 
 export function Header() {
   const { data: session } = useSession();
@@ -24,6 +26,7 @@ export function Header() {
     { name: 'Accueil', href: '/', icon: Home },
     { name: 'Ceintures', href: '/ceintures', icon: Trophy },
     { name: 'Dashboard', href: '/dashboard', icon: User, protected: true },
+    { name: 'Mes Notes', href: '/notes', icon: StickyNote, protected: true },
     { name: 'Admin', href: '/admin', icon: Shield, protected: true, adminOnly: true },
   ];
 
@@ -44,7 +47,13 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
+            {/* Barre de recherche */}
+            <div className="w-64 lg:w-80">
+              <SearchBar placeholder="Rechercher..." />
+            </div>
+
+            <div className="flex items-center space-x-6">
             {navigation.map((item) => {
               if (item.protected && !session) return null;
               if (item.adminOnly && !isAdmin) return null;
@@ -60,6 +69,8 @@ export function Header() {
                 </Link>
               );
             })}
+
+            </div>
 
             {session ? (
               <div className="flex items-center space-x-4">

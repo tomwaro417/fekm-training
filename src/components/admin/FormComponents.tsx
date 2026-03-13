@@ -25,7 +25,7 @@ export function Input({
       )}
       <input
         className={cn(
-          'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors',
+          'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-black placeholder-gray-400',
           error 
             ? 'border-red-300 focus:ring-red-200 focus:border-red-400' 
             : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400',
@@ -67,7 +67,7 @@ export function Select({
       )}
       <select
         className={cn(
-          'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors appearance-none bg-white',
+          'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors appearance-none bg-white text-black',
           error 
             ? 'border-red-300 focus:ring-red-200 focus:border-red-400' 
             : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400',
@@ -113,7 +113,7 @@ export function TextArea({
       )}
       <textarea
         className={cn(
-          'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors resize-none',
+          'w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors resize-none text-black placeholder-gray-400',
           error 
             ? 'border-red-300 focus:ring-red-200 focus:border-red-400' 
             : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400',
@@ -241,7 +241,7 @@ export function SearchInput({ onChange, placeholder = 'Rechercher...', className
         type="text"
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder-gray-400"
         {...props}
       />
     </div>

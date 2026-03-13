@@ -254,7 +254,6 @@ async function postHandler(request: NextRequest) {
         data: {
           techniqueId: metadata.techniqueId,
           videoId: videoAsset.id,
-          type: metadata.type,
           order: existingLinks,
         },
         include: {
@@ -272,7 +271,6 @@ async function postHandler(request: NextRequest) {
       userId: session.user.id,
       videoId: videoAsset.id,
       techniqueId: metadata.techniqueId,
-      type: metadata.type,
       filename: file.name,
       size: formatFileSize(file.size),
     })
@@ -295,7 +293,6 @@ async function postHandler(request: NextRequest) {
         metadata: {
           title: metadata.title,
           description: metadata.description,
-          type: metadata.type,
           isPublic: metadata.isPublic,
           tags: parseTags(metadata.tags),
         },

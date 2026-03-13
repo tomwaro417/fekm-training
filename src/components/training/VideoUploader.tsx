@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
-import { Upload, Camera, X, Video, FileVideo, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Upload, Camera, X, Video, FileVideo, AlertCircle, CheckCircle2, Play } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ============================================
@@ -562,9 +562,37 @@ export function VideoUploader({
               )}
 
               {state.status === 'success' && state.video && (
-                <p className="text-sm text-green-600 mt-2">
-                  {state.video.filename}
-                </p>
+                <div className="mt-4">
+                  <p className="text-sm text-green-600 mb-2">
+                    {state.video.filename}
+                  </p>
+                  <div className="relative w-full max-w-xs mx-auto aspect-video rounded-lg overflow-hidden bg-gray-900 group">
+                    {state.video.thumbnailUrl ? (
+                      <img
+                        src={state.video.thumbnailUrl}
+                        alt="Miniature de la vidéo"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Si l'image ne charge pas, masquer l'élément img
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/50 transition-colors">
+                      <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Play className="w-8 h-8 text-gray-900 ml-1" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-2 right-2">
+                      <span className="px-2 py-1 bg-black/60 text-white text-xs rounded">
+                        Upload terminé
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    La page va se recharger pour afficher la vidéo...
+                  </p>
+                </div>
               )}
 
               {/* Buttons */}

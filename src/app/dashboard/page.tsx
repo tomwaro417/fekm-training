@@ -17,6 +17,7 @@ interface Progress {
   id: string;
   level: string;
   technique: {
+    id: string;
     name: string;
     category: string;
     module: {
@@ -157,13 +158,17 @@ export default function DashboardPage() {
           {progress.length > 0 ? (
             <div className="divide-y divide-gray-100">
               {progress.slice(0, 10).map((p) => (
-                <div key={p.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <Link
+                  key={p.id}
+                  href={`/techniques/${p.technique.id}`}
+                  className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center space-x-4">
-                    <div 
+                    <div
                       className="w-10 h-10 rounded-lg flex items-center justify-center"
                       style={{ backgroundColor: `${p.technique.module.belt.color}20` }}
                     >
-                      <Trophy 
+                      <Trophy
                         className="w-5 h-5"
                         style={{ color: p.technique.module.belt.color }}
                       />
@@ -178,7 +183,7 @@ export default function DashboardPage() {
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${levelColors[p.level]}`}>
                     {levelLabels[p.level]}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (

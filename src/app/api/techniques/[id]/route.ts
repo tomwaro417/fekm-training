@@ -49,6 +49,18 @@ async function getHandler(
       },
     })
 
+    // Ajouter les URLs aux vidéos du coach
+    if (technique && technique.videos) {
+      technique.videos = technique.videos.map((tv: any) => ({
+        ...tv,
+        video: {
+          ...tv.video,
+          url: `/api/videos/${tv.video.id}/stream`,
+          thumbnailUrl: `/api/videos/${tv.video.id}/thumbnail`,
+        }
+      }))
+    }
+
     if (!technique) {
       return createErrorResponse('NOT_FOUND', 404)
     }
@@ -66,12 +78,13 @@ async function getHandler(
     console.log('API - Vidéos trouvées:', userVideos.length, 'pour technique:', validatedId)
     console.log('API - Détail vidéos:', JSON.stringify(userVideos.map(v => ({ id: v.id, slot: v.slot, userId: v.userId, videoId: v.videoId })), null, 2))
 
-    // Ajouter l'URL de streaming aux vidéos
+    // Ajouter l'URL de streaming et de miniature aux vidéos
     const userVideosWithUrl = userVideos.map(uv => ({
       ...uv,
       video: {
         ...uv.video,
         url: `/api/videos/${uv.video.id}/stream`,
+        thumbnailUrl: `/api/videos/${uv.video.id}/thumbnail`,
       }
     }))
 

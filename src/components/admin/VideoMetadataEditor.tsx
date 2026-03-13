@@ -84,7 +84,7 @@ export function VideoMetadataEditor({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={video.filename}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder-gray-400"
           />
           <p className="text-xs text-gray-500 mt-1">
             Si vide, le nom du fichier sera utilisé
@@ -102,7 +102,7 @@ export function VideoMetadataEditor({
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
             placeholder="Description de la vidéo..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-black placeholder-gray-400"
           />
         </div>
 
@@ -121,7 +121,7 @@ export function VideoMetadataEditor({
               onChange={(e) => setNewTag(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
               placeholder="Ajouter un tag..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder-gray-400"
             />
             <Button
               type="button"

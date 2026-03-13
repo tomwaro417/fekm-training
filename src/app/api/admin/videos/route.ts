@@ -44,7 +44,7 @@ async function getHandler(request: NextRequest) {
       return createErrorResponse('VALIDATION_ERROR', 400, validation.error.issues)
     }
 
-    const { page, limit, search, type, status, unlinked } = validation.data
+    const { page, limit, search, status, unlinked } = validation.data
     const skip = (page - 1) * limit
 
     // Construction du where

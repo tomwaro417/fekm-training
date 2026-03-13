@@ -5,6 +5,10 @@ import { prisma } from '@/lib/prisma';
 import { writeFile, access, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { constants } from 'fs';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
 
 // Types de vidéos acceptés
 const ALLOWED_VIDEO_TYPES = [
@@ -48,6 +52,48 @@ async function ensureUploadsDirectory(): Promise<string> {
   }
   
   return uploadsDir;
+}
+
+// Vérifier que le dossier des miniatures existe
+async function ensureThumbnailsDirectory(): Promise<string> {
+  const thumbnailsDir = join(process.cwd(), 'uploads', 'thumbnails');
+  
+  try {
+    await access(thumbnailsDir, constants.W_OK);
+  } catch {
+    try {
+      await mkdir(thumbnailsDir, { recursive: true });
+      console.log('[Upload] Dossier thumbnails créé:', thumbnailsDir);
+    } catch (mkdirError) {
+      console.error('[Upload] Erreur création dossier thumbnails:', mkdirError);
+      throw new Error('Impossible de créer le dossier de miniatures');
+    }
+  }
+  
+  return thumbnailsDir;
+}
+
+// Générer une miniature à partir de la vidéo
+async function generateThumbnail(videoPath: string, thumbnailPath: string): Promise<boolean> {
+  try {
+    console.log('[Thumbnail] Génération miniature:', videoPath);
+    
+    // Extraire une image à 1 seconde ou au début de la vidéo
+    const command = `ffmpeg -i "${videoPath}" -ss 00:00:01 -vframes 1 -q:v 2 -vf "scale=480:-1" "${thumbnailPath}"`;
+    
+    const { stdout, stderr } = await execPromise(command);
+    
+    if (stderr && stderr.includes('Error')) {
+      console.error('[Thumbnail] Erreur ffmpeg:', stderr);
+      return false;
+    }
+    
+    console.log('[Thumbnail] Miniature générée:', thumbnailPath);
+    return true;
+  } catch (error) {
+    console.error('[Thumbnail] Erreur génération:', error);
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -175,6 +221,18 @@ export async function POST(request: NextRequest) {
       throw new Error('Le fichier n\'a pas été créé correctement');
     }
 
+    // Générer la miniature
+    let thumbnailGenerated = false;
+    let thumbnailPath = '';
+    try {
+      const thumbnailsDir = await ensureThumbnailsDirectory();
+      thumbnailPath = join(thumbnailsDir, `${timestamp}.jpg`);
+      thumbnailGenerated = await generateThumbnail(filepath, thumbnailPath);
+    } catch (thumbError) {
+      console.error('[Upload] Erreur génération miniature:', thumbError);
+      // On continue même si la miniature échoue
+    }
+
     // Créer l'entrée dans VideoAsset
     let videoAsset;
     try {
@@ -185,6 +243,7 @@ export async function POST(request: NextRequest) {
           mimeType: videoFile.type || 'video/mp4',
           size: videoFile.size,
           path: `uploads/videos/${filename}`,
+          thumbnailPath: thumbnailGenerated ? `uploads/thumbnails/${timestamp}.jpg` : null,
         },
       });
       console.log('[Upload] Entrée DB créée:', videoAsset.id);
@@ -194,6 +253,9 @@ export async function POST(request: NextRequest) {
       try {
         const { unlink } = await import('fs/promises');
         await unlink(filepath);
+        if (thumbnailGenerated) {
+          await unlink(thumbnailPath);
+        }
       } catch {}
       throw new Error('Erreur lors de l\'enregistrement en base de données');
     }
@@ -225,6 +287,11 @@ export async function POST(request: NextRequest) {
       // On continue quand même, l'asset est créé
     }
 
+    // Générer l'URL de la miniature (si elle existe)
+    const thumbnailUrl = thumbnailGenerated 
+      ? `/api/videos/${videoAsset.id}/thumbnail`
+      : null;
+
     return NextResponse.json({
       success: true,
       message: 'Vidéo uploadée avec succès',
@@ -234,6 +301,7 @@ export async function POST(request: NextRequest) {
         originalName: videoAsset.originalName,
         size: videoAsset.size,
         path: videoAsset.path,
+        thumbnailUrl: thumbnailUrl,
       },
     });
 

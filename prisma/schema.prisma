@@ -59,6 +59,7 @@ model User {
   belt          Belt?     @relation(fields: [beltId], references: [id])
   beltHistory   BeltHistory[] @relation("UserBeltHistory") // Historique des changements de ceinture
   promotions    BeltHistory[] @relation("PromotedBy") // Ceintures assignées par cet admin
+  notes         UserNote[] // Notes personnelles sur les techniques
 }
 
 model VerificationToken {
@@ -160,6 +161,7 @@ model Technique {
   progress UserTechniqueProgress[]
   videos   TechniqueVideoLink[]
   userVideos UserTechniqueVideo[]  // Relation inverse ajoutée
+  notes    UserNote[] // Notes personnelles des utilisateurs
 }
 
 enum TechniqueCategory {
@@ -269,6 +271,27 @@ model UserTechniqueVideo {
   video     VideoAsset @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@unique([userId, techniqueId, slot])
+}
+
+// ============================================
+// NOTES PERSONNELLES UTILISATEUR
+// ============================================
+
+model UserNote {
+  id          String   @id @default(cuid())
+  userId      String
+  techniqueId String
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  technique Technique @relation(fields: [techniqueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, techniqueId])
+  @@index([userId])
+  @@index([techniqueId])
 }
 
 enum UserVideoSlot {
