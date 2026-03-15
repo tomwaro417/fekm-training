@@ -15,7 +15,7 @@ GATEWAY=${3:-192.168.1.1}
 CONTAINER_NAME="fekm-training"
 MEMORY=2048
 CORES=2
-DISK_SIZE=20G
+DISK_SIZE=20
 
 # Couleurs pour les logs
 RED='\033[0;31m'
