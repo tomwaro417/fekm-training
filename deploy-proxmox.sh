@@ -172,8 +172,8 @@ pct exec $VMID -- apt-get install -y nodejs
 log_info "Installation de pnpm..."
 pct exec $VMID -- npm install -g pnpm
 
-# Créer un lien symbolique pour pnpm
-pct exec $VMID -- ln -sf /usr/local/bin/pnpm /usr/bin/pnpm || true
+# Vérifier où pnpm est installé et créer des liens symboliques
+pct exec $VMID -- bash -c "PNPM_PATH=\$(which pnpm); ln -sf \$PNPM_PATH /usr/bin/pnpm || true; ln -sf \$PNPM_PATH /bin/pnpm || true; echo \"pnpm installé à: \$PNPM_PATH\""
 
 # =============================================================================
 # Étape 5: Configuration de PostgreSQL
@@ -215,23 +215,23 @@ pct exec $VMID -- bash -c "chown -R fekm:fekm /home/fekm/app"
 
 # Installation des dépendances Node.js
 log_info "Installation des dépendances Node.js..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm install"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PATH=\$PATH:/usr/local/bin:/usr/bin && cd /home/fekm/app && pnpm install"'
 
 # Génération Prisma
 log_info "Génération Prisma..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm prisma generate"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PATH=\$PATH:/usr/local/bin:/usr/bin && cd /home/fekm/app && pnpm prisma generate"'
 
 # Application des migrations Prisma (CRUCIAL !)
 log_info "Application des migrations Prisma..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm prisma migrate deploy"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PATH=\$PATH:/usr/local/bin:/usr/bin && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && pnpm prisma migrate deploy"'
 
 # Seed de la base de données
 log_info "Seed de la base de données..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm db:seed"' || log_warn "Seed échoué ou déjà fait"
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PATH=\$PATH:/usr/local/bin:/usr/bin && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && pnpm db:seed"' || log_warn "Seed échoué ou déjà fait"
 
 # Build de l'application
 log_info "Build de l'application..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm build"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PATH=\$PATH:/usr/local/bin:/usr/bin && cd /home/fekm/app && pnpm build"'
 
 # =============================================================================
 # Étape 7: Configuration Nginx et démarrage
@@ -282,7 +282,7 @@ Environment=DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localh
 Environment=NEXTAUTH_URL=http://$IP_ADDRESS
 Environment=NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 Environment=REDIS_URL=redis://localhost:6379
-ExecStart=/usr/local/bin/pnpm start
+ExecStart=/bin/bash -c 'export PATH=\$PATH:/usr/local/bin:/usr/bin && cd /home/fekm/app && pnpm start'
 Restart=always
 RestartSec=10
 
