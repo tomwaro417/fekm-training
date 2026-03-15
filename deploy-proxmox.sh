@@ -98,9 +98,8 @@ pct create $VMID $TEMPLATE_PATH \
     --hostname $CONTAINER_NAME \
     --memory $MEMORY \
     --cores $CORES \
-    --rootfs local:$DISK_SIZE \
+    --rootfs local-lvm:$DISK_SIZE \
     --net0 name=eth0,bridge=vmbr0,ip=$IP_ADDRESS/24,gw=$GATEWAY \
-    --storage local \
     --unprivileged 1 \
     --features nesting=1,keyctl=1 \
     --ostype debian
