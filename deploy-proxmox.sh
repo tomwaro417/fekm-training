@@ -151,6 +151,11 @@ pct exec $VMID -- apt-get install -y \
     ufw \
     fail2ban
 
+# Vérifier que sudo est bien installé et configurer le PATH
+log_info "Vérification de sudo..."
+pct exec $VMID -- bash -c "which sudo || apt-get install -y sudo"
+pct exec $VMID -- bash -c "export PATH=\$PATH:/usr/bin:/bin:/usr/sbin:/sbin"
+
 # Installation de Node.js 22 via NodeSource
 log_info "Installation de Node.js 22..."
 pct exec $VMID -- bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | bash -"
@@ -172,10 +177,11 @@ pct exec $VMID -- systemctl start postgresql
 pct exec $VMID -- systemctl enable postgresql
 
 # Création de la base de données et de l'utilisateur
-pct exec $VMID -- sudo -u postgres psql -c "CREATE DATABASE fekm_training;"
-pct exec $VMID -- sudo -u postgres psql -c "CREATE USER fekm_user WITH PASSWORD 'fekm_secure_password_2024';"
-pct exec $VMID -- sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;"
-pct exec $VMID -- sudo -u postgres psql -c "ALTER DATABASE fekm_training OWNER TO fekm_user;"
+log_info "Configuration PostgreSQL..."
+pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'CREATE DATABASE fekm_training;'"'"'"'
+pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'CREATE USER fekm_user WITH PASSWORD '"'"'"'"'"'fekm_secure_password_2024'"'"'"'"'"';'"'"'"'
+pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;'"'"'"'
+pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'ALTER DATABASE fekm_training OWNER TO fekm_user;'"'"'"'
 
 # Configuration de Redis
 pct exec $VMID -- systemctl start redis-server
@@ -195,23 +201,23 @@ pct exec $VMID -- bash -c "chown -R fekm:fekm /home/fekm/app"
 
 # Installation des dépendances Node.js
 log_info "Installation des dépendances Node.js..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm /usr/local/bin/pnpm install"
+pct exec $VMID -- bash -c 'su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm install"'
 
 # Génération Prisma
 log_info "Génération Prisma..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm /usr/local/bin/pnpm prisma generate"
+pct exec $VMID -- bash -c 'su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm prisma generate"'
 
 # Application des migrations Prisma (CRUCIAL !)
 log_info "Application des migrations Prisma..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && sudo -u fekm /usr/local/bin/pnpm prisma migrate deploy"
+pct exec $VMID -- bash -c 'su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm prisma migrate deploy"'
 
 # Seed de la base de données
 log_info "Seed de la base de données..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && sudo -u fekm /usr/local/bin/pnpm db:seed" || log_warn "Seed échoué ou déjà fait"
+pct exec $VMID -- bash -c 'su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm db:seed"' || log_warn "Seed échoué ou déjà fait"
 
 # Build de l'application
 log_info "Build de l'application..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm /usr/local/bin/pnpm build"
+pct exec $VMID -- bash -c 'su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm build"'
 
 # =============================================================================
 # Étape 7: Configuration Nginx et démarrage
