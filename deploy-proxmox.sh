@@ -128,6 +128,13 @@ done
 pct exec $VMID -- bash -c "echo 'nameserver 8.8.8.8' > /etc/resolv.conf"
 pct exec $VMID -- bash -c "echo 'nameserver 1.1.1.1' >> /etc/resolv.conf"
 
+# Configuration locale pour éviter les warnings Perl
+log_info "Configuration des locales..."
+pct exec $VMID -- bash -c "echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen"
+pct exec $VMID -- bash -c "echo 'LANG=en_US.UTF-8' > /etc/default/locale"
+pct exec $VMID -- locale-gen en_US.UTF-8 2>/dev/null || true
+pct exec $VMID -- bash -c "export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8"
+
 # Mise à jour du système
 log_info "Mise à jour du système..."
 pct exec $VMID -- apt-get update
@@ -178,10 +185,10 @@ pct exec $VMID -- systemctl enable postgresql
 
 # Création de la base de données et de l'utilisateur
 log_info "Configuration PostgreSQL..."
-pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'CREATE DATABASE fekm_training;'"'"'"'
-pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'CREATE USER fekm_user WITH PASSWORD '"'"'"'"'"'fekm_secure_password_2024'"'"'"'"'"';'"'"'"'
-pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;'"'"'"'
-pct exec $VMID -- bash -c 'su - postgres -c "psql -c '"'"'ALTER DATABASE fekm_training OWNER TO fekm_user;'"'"'"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'CREATE DATABASE fekm_training;'"'"'"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'CREATE USER fekm_user WITH PASSWORD '"'"'"'"'"'fekm_secure_password_2024'"'"'"'"'"';'"'"'"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;'"'"'"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'ALTER DATABASE fekm_training OWNER TO fekm_user;'"'"'"'
 
 # Configuration de Redis
 pct exec $VMID -- systemctl start redis-server
@@ -201,23 +208,23 @@ pct exec $VMID -- bash -c "chown -R fekm:fekm /home/fekm/app"
 
 # Installation des dépendances Node.js
 log_info "Installation des dépendances Node.js..."
-pct exec $VMID -- bash -c 'su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm install"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm install"'
 
 # Génération Prisma
 log_info "Génération Prisma..."
-pct exec $VMID -- bash -c 'su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm prisma generate"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm prisma generate"'
 
 # Application des migrations Prisma (CRUCIAL !)
 log_info "Application des migrations Prisma..."
-pct exec $VMID -- bash -c 'su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm prisma migrate deploy"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm prisma migrate deploy"'
 
 # Seed de la base de données
 log_info "Seed de la base de données..."
-pct exec $VMID -- bash -c 'su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm db:seed"' || log_warn "Seed échoué ou déjà fait"
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && /usr/local/bin/pnpm db:seed"' || log_warn "Seed échoué ou déjà fait"
 
 # Build de l'application
 log_info "Build de l'application..."
-pct exec $VMID -- bash -c 'su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm build"'
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "cd /home/fekm/app && /usr/local/bin/pnpm build"'
 
 # =============================================================================
 # Étape 7: Configuration Nginx et démarrage
