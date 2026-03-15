@@ -139,6 +139,7 @@ pct exec $VMID -- apt-get install -y \
     curl \
     wget \
     git \
+    sudo \
     nginx \
     postgresql \
     postgresql-contrib \
