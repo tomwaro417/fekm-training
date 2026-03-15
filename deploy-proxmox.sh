@@ -185,10 +185,17 @@ pct exec $VMID -- systemctl enable postgresql
 
 # Création de la base de données et de l'utilisateur
 log_info "Configuration PostgreSQL..."
-pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"CREATE DATABASE fekm_training;\"'"
-pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"CREATE USER fekm_user WITH PASSWORD '"'"'fekm_secure_password_2024'"'"';\"'"
-pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;\"'"
-pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"ALTER DATABASE fekm_training OWNER TO fekm_user;\"'"
+
+# Créer un fichier SQL temporaire
+pct exec $VMID -- bash -c "cat > /tmp/setup_db.sql << 'SQLEOF'
+CREATE DATABASE fekm_training;
+CREATE USER fekm_user WITH PASSWORD 'fekm_secure_password_2024';
+GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;
+ALTER DATABASE fekm_training OWNER TO fekm_user;
+SQLEOF"
+
+# Exécuter le fichier SQL
+pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -f /tmp/setup_db.sql'"
 
 # Configuration de Redis
 pct exec $VMID -- systemctl start redis-server
