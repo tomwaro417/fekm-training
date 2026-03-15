@@ -185,10 +185,10 @@ pct exec $VMID -- systemctl enable postgresql
 
 # Création de la base de données et de l'utilisateur
 log_info "Configuration PostgreSQL..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'CREATE DATABASE fekm_training;'"'"'"'
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'CREATE USER fekm_user WITH PASSWORD '"'"'"'"'"'fekm_secure_password_2024'"'"'"'"'"';'"'"'"'
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;'"'"'"'
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - postgres -c "psql -c '"'"'ALTER DATABASE fekm_training OWNER TO fekm_user;'"'"'"'
+pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"CREATE DATABASE fekm_training;\"'"
+pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"CREATE USER fekm_user WITH PASSWORD '"'"'fekm_secure_password_2024'"'"';\"'"
+pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"GRANT ALL PRIVILEGES ON DATABASE fekm_training TO fekm_user;\"'"
+pct exec $VMID -- bash -c "export LANG=en_US.UTF-8; export LC_ALL=en_US.UTF-8; su - postgres -c 'psql -c \"ALTER DATABASE fekm_training OWNER TO fekm_user;\"'"
 
 # Configuration de Redis
 pct exec $VMID -- systemctl start redis-server
