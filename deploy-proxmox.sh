@@ -56,7 +56,7 @@ echo ""
 # =============================================================================
 # Étape 1: Téléchargement du template Debian 12
 # =============================================================================
-log_info "Étape 1/6: Vérification du template Debian 12..."
+log_info "Étape 1/7: Vérification du template Debian 12..."
 
 TEMPLATE="debian-12-standard_12.7-1_amd64.tar.zst"
 TEMPLATE_PATH="/var/lib/vz/template/cache/$TEMPLATE"
@@ -79,7 +79,7 @@ fi
 # =============================================================================
 # Étape 2: Destruction du conteneur existant (si présent)
 # =============================================================================
-log_info "Étape 2/6: Vérification du conteneur existant..."
+log_info "Étape 2/7: Vérification du conteneur existant..."
 
 if pct status $VMID &> /dev/null; then
     log_warn "Le conteneur $VMID existe déjà, suppression..."
@@ -92,7 +92,7 @@ fi
 # =============================================================================
 # Étape 3: Création du conteneur LXC
 # =============================================================================
-log_info "Étape 3/6: Création du conteneur LXC..."
+log_info "Étape 3/7: Création du conteneur LXC..."
 
 pct create $VMID $TEMPLATE_PATH \
     --hostname $CONTAINER_NAME \
@@ -109,7 +109,7 @@ log_info "Conteneur créé avec succès"
 # =============================================================================
 # Étape 4: Configuration du conteneur
 # =============================================================================
-log_info "Étape 4/6: Configuration du conteneur..."
+log_info "Étape 4/7: Configuration du conteneur..."
 
 # Démarrage du conteneur
 pct start $VMID
@@ -133,37 +133,40 @@ log_info "Mise à jour du système..."
 pct exec $VMID -- apt-get update
 pct exec $VMID -- apt-get upgrade -y
 
-# Installation des dépendances
-log_info "Installation des dépendances..."
+# Installation des dépendances système
+log_info "Installation des dépendances système..."
 pct exec $VMID -- apt-get install -y \
     curl \
     wget \
     git \
     sudo \
+    ca-certificates \
+    gnupg \
     nginx \
     postgresql \
     postgresql-contrib \
     redis-server \
-    nodejs \
-    npm \
     certbot \
     python3-certbot-nginx \
     ufw \
     fail2ban
-
-# Installation de pnpm
-log_info "Installation de pnpm..."
-pct exec $VMID -- npm install -g pnpm
 
 # Installation de Node.js 22 via NodeSource
 log_info "Installation de Node.js 22..."
 pct exec $VMID -- bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | bash -"
 pct exec $VMID -- apt-get install -y nodejs
 
+# Installation de pnpm
+log_info "Installation de pnpm..."
+pct exec $VMID -- npm install -g pnpm
+
+# Créer un lien symbolique pour pnpm
+pct exec $VMID -- ln -sf /usr/local/bin/pnpm /usr/bin/pnpm || true
+
 # =============================================================================
 # Étape 5: Configuration de PostgreSQL
 # =============================================================================
-log_info "Étape 5/6: Configuration de PostgreSQL..."
+log_info "Étape 5/7: Configuration de PostgreSQL..."
 
 pct exec $VMID -- systemctl start postgresql
 pct exec $VMID -- systemctl enable postgresql
@@ -181,7 +184,7 @@ pct exec $VMID -- systemctl enable redis-server
 # =============================================================================
 # Étape 6: Déploiement de l'application
 # =============================================================================
-log_info "Étape 6/6: Déploiement de l'application..."
+log_info "Étape 6/7: Déploiement de l'application..."
 
 # Création de l'utilisateur applicatif
 pct exec $VMID -- useradd -m -s /bin/bash fekm || true
@@ -190,19 +193,32 @@ pct exec $VMID -- useradd -m -s /bin/bash fekm || true
 pct exec $VMID -- bash -c "cd /home/fekm && git clone https://github.com/tomwaro417/fekm-training.git app"
 pct exec $VMID -- bash -c "chown -R fekm:fekm /home/fekm/app"
 
-# Installation des dépendances
+# Installation des dépendances Node.js
 log_info "Installation des dépendances Node.js..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm pnpm install"
+pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm /usr/local/bin/pnpm install"
 
 # Génération Prisma
-pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm pnpm prisma generate"
+log_info "Génération Prisma..."
+pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm /usr/local/bin/pnpm prisma generate"
+
+# Application des migrations Prisma (CRUCIAL !)
+log_info "Application des migrations Prisma..."
+pct exec $VMID -- bash -c "cd /home/fekm/app && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && sudo -u fekm /usr/local/bin/pnpm prisma migrate deploy"
+
+# Seed de la base de données
+log_info "Seed de la base de données..."
+pct exec $VMID -- bash -c "cd /home/fekm/app && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && sudo -u fekm /usr/local/bin/pnpm db:seed" || log_warn "Seed échoué ou déjà fait"
 
 # Build de l'application
 log_info "Build de l'application..."
-pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm pnpm build"
+pct exec $VMID -- bash -c "cd /home/fekm/app && sudo -u fekm /usr/local/bin/pnpm build"
+
+# =============================================================================
+# Étape 7: Configuration Nginx et démarrage
+# =============================================================================
+log_info "Étape 7/7: Configuration Nginx et démarrage..."
 
 # Configuration Nginx
-log_info "Configuration Nginx..."
 pct exec $VMID -- bash -c "cat > /etc/nginx/sites-available/fekm-training << 'EOF'
 server {
     listen 80;
@@ -229,7 +245,9 @@ pct exec $VMID -- systemctl restart nginx
 
 # Création du service systemd
 log_info "Création du service systemd..."
-pct exec $VMID -- bash -c "cat > /etc/systemd/system/fekm-training.service << 'EOF'
+NEXTAUTH_SECRET=$(openssl rand -base64 32)
+
+pct exec $VMID -- bash -c "cat > /etc/systemd/system/fekm-training.service << EOF
 [Unit]
 Description=FEKM Training Application
 After=network.target postgresql.service redis.service
@@ -242,9 +260,9 @@ Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training
 Environment=NEXTAUTH_URL=http://$IP_ADDRESS
-Environment=NEXTAUTH_SECRET=$(openssl rand -base64 32)
+Environment=NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 Environment=REDIS_URL=redis://localhost:6379
-ExecStart=/usr/bin/pnpm start
+ExecStart=/usr/local/bin/pnpm start
 Restart=always
 RestartSec=10
 
@@ -262,9 +280,7 @@ pct exec $VMID -- ufw allow 80/tcp
 pct exec $VMID -- ufw allow 443/tcp
 pct exec $VMID -- ufw --force enable
 
-# =============================================================================
 # Démarrage de l'application
-# =============================================================================
 log_info "Démarrage de l'application..."
 pct exec $VMID -- systemctl start fekm-training
 
