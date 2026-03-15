@@ -272,6 +272,24 @@ pct exec $VMID -- systemctl restart nginx
 log_info "Création du service systemd..."
 NEXTAUTH_SECRET=$(openssl rand -base64 32)
 
+# Créer un script de démarrage pour l'application
+pct exec $VMID -- bash -c "cat > /home/fekm/start-app.sh << 'STARTEOF'
+#!/bin/bash
+export PNPM_HOME=/home/fekm/.local/share/pnpm
+export PATH=\$PNPM_HOME:/usr/local/bin:/usr/bin:\$PATH
+export NODE_ENV=production
+export PORT=3000
+export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training
+export NEXTAUTH_URL=http://$IP_ADDRESS
+export NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+export REDIS_URL=redis://localhost:6379
+cd /home/fekm/app
+exec pnpm start
+STARTEOF"
+
+pct exec $VMID -- chmod +x /home/fekm/start-app.sh
+pct exec $VMID -- chown fekm:fekm /home/fekm/start-app.sh
+
 pct exec $VMID -- bash -c "cat > /etc/systemd/system/fekm-training.service << EOF
 [Unit]
 Description=FEKM Training Application
@@ -281,13 +299,7 @@ After=network.target postgresql.service redis.service
 Type=simple
 User=fekm
 WorkingDirectory=/home/fekm/app
-Environment=NODE_ENV=production
-Environment=PORT=3000
-Environment=DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training
-Environment=NEXTAUTH_URL=http://$IP_ADDRESS
-Environment=NEXTAUTH_SECRET=$NEXTAUTH_SECRET
-Environment=REDIS_URL=redis://localhost:6379
-ExecStart=/bin/bash -c 'export PNPM_HOME=/home/fekm/.local/share/pnpm && export PATH=\$PNPM_HOME:/usr/local/bin:/usr/bin:\$PATH && cd /home/fekm/app && pnpm start'
+ExecStart=/home/fekm/start-app.sh
 Restart=always
 RestartSec=10
 
