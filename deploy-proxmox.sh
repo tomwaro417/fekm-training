@@ -226,8 +226,9 @@ log_info "Génération Prisma..."
 pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PNPM_HOME=/home/fekm/.local/share/pnpm && export PATH=\$PNPM_HOME:/usr/local/bin:/usr/bin:\$PATH && cd /home/fekm/app && pnpm prisma generate"'
 
 # Application des migrations Prisma (CRUCIAL !)
-log_info "Application des migrations Prisma..."
-pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PNPM_HOME=/home/fekm/.local/share/pnpm && export PATH=\$PNPM_HOME:/usr/local/bin:/usr/bin:\$PATH && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && pnpm prisma migrate deploy"'
+log_info "Application du schema Prisma..."
+# Utiliser db push pour créer toutes les tables d'un coup (plus fiable pour un déploiement frais)
+pct exec $VMID -- bash -c 'export LANG=en_US.UTF-8 && export LC_ALL=en_US.UTF-8 && su - fekm -c "export PNPM_HOME=/home/fekm/.local/share/pnpm && export PATH=\$PNPM_HOME:/usr/local/bin:/usr/bin:\$PATH && export DATABASE_URL=postgresql://fekm_user:fekm_secure_password_2024@localhost:5432/fekm_training && cd /home/fekm/app && pnpm prisma db push --accept-data-loss"'
 
 # Seed de la base de données
 log_info "Seed de la base de données..."
