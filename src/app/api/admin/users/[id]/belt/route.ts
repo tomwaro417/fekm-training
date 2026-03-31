@@ -11,7 +11,7 @@ import { z } from 'zod'
 // ============================================
 
 const beltAssignmentSchema = z.object({
-  beltId: z.string().uuid().nullable(),
+  beltId: z.string().min(1).nullable(),
   promotionDate: z.string().datetime().optional(),
   notes: z.string().max(1000, 'Notes trop longues').optional(),
 })

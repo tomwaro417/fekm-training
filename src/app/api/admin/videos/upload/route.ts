@@ -34,11 +34,11 @@ const UPLOAD_DIR = join(process.cwd(), 'uploads', 'videos')
 // ============================================
 
 const videoMetadataSchema = z.object({
-  title: z.string().min(1, 'Le titre est requis').max(200, 'Titre trop long'),
+  title: z.string().max(200, 'Titre trop long').optional(),
   description: z.string().max(2000, 'Description trop longue').optional(),
-  techniqueId: z.string().uuid('ID technique invalide').optional(),
-  beltId: z.string().uuid('ID ceinture invalide').optional(),
-  moduleId: z.string().uuid('ID module invalide').optional(),
+  techniqueId: z.string().min(1, 'ID technique invalide').optional(),
+  beltId: z.string().min(1, 'ID ceinture invalide').optional(),
+  moduleId: z.string().min(1, 'ID module invalide').optional(),
   // Type supprimé - toutes les vidéos sont des démonstrations
   isPublic: z.boolean().default(false),
   tags: z.string().optional(), // JSON stringifié
@@ -117,6 +117,17 @@ async function postHandler(request: NextRequest) {
       return createErrorResponse('UNAUTHORIZED', 401)
     }
 
+    // Vérifier que l'utilisateur existe dans la base de données
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true }
+    })
+    
+    if (!userExists) {
+      logError('POST /api/admin/videos/upload', `Utilisateur ${session.user.id} non trouvé dans la DB`)
+      return createErrorResponse('UNAUTHORIZED', 401, 'Session invalide - utilisateur non trouvé')
+    }
+
     // Parser le FormData
     let formData: FormData
     try {
@@ -157,10 +168,22 @@ async function postHandler(request: NextRequest) {
       techniqueId: formData.get('techniqueId') || undefined,
       beltId: formData.get('beltId') || undefined,
       moduleId: formData.get('moduleId') || undefined,
-      // type supprimé - fusion en démonstration unique
+      // type est ignoré - toutes les vidéos sont des démonstrations
       isPublic: formData.get('isPublic') === 'true',
       tags: formData.get('tags') || undefined,
     })
+
+    // Debug: loguer les erreurs de validation
+    if (!metadataValidation.success) {
+      console.error('[Upload Debug] Validation errors:', metadataValidation.error.issues)
+      console.error('[Upload Debug] FormData received:', {
+        title: formData.get('title'),
+        techniqueId: formData.get('techniqueId'),
+        beltId: formData.get('beltId'),
+        moduleId: formData.get('moduleId'),
+        isPublic: formData.get('isPublic'),
+      })
+    }
 
     if (!metadataValidation.success) {
       return createErrorResponse('VALIDATION_ERROR', 400, metadataValidation.error.issues)
@@ -230,7 +253,7 @@ async function postHandler(request: NextRequest) {
       data: {
         filename,
         originalName: file.name,
-        title: metadata.title !== file.name ? metadata.title : null,
+        title: metadata.title && metadata.title !== file.name ? metadata.title : null,
         description: metadata.description,
         tags: parseTags(metadata.tags),
         mimeType: file.type,

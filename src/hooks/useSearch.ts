@@ -194,7 +194,13 @@ export function useKeyboardShortcut(
   callback: () => void
 ) {
   useEffect(() => {
+    // Vérifier que keyCombo.key est défini
+    if (!keyCombo?.key) return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Vérifier que event.key et keyCombo.key sont définis
+      if (!event.key || !keyCombo?.key) return;
+
       const keyMatch = event.key.toLowerCase() === keyCombo.key.toLowerCase();
       const metaMatch = keyCombo.metaKey ? event.metaKey : true;
       const ctrlMatch = keyCombo.ctrlKey ? event.ctrlKey : true;

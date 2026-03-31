@@ -248,11 +248,10 @@ export default function UserDetailPage() {
 
   async function handleBeltChange() {
     try {
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch(`/api/admin/users/${userId}/belt`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
           beltId: selectedBeltId || null
         })
       })

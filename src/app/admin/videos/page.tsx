@@ -9,7 +9,6 @@ import {
   Search,
   ChevronRight,
   ChevronLeft,
-  User,
   Film,
   X,
   CheckCircle,
@@ -289,8 +288,7 @@ export default function VideoManagementPage() {
           ) : (
             <div className="divide-y divide-gray-200">
               {techniques.map((technique) => {
-                const coachVideos = technique.videos.filter(v => v.type === 'COACH')
-                const demoVideos = technique.videos.filter(v => v.type === 'DEMONSTRATION')
+                const videoCount = technique.videos.length
                 
                 return (
                   <div key={technique.id} className="p-6 hover:bg-gray-50">
@@ -310,19 +308,12 @@ export default function VideoManagementPage() {
                         
                         {/* Vidéos existantes */}
                         <div className="flex flex-wrap gap-4">
-                          {coachVideos.length > 0 && (
-                            <div className="flex items-center text-sm text-green-600">
-                              <User className="w-4 h-4 mr-1" />
-                              <span>{coachVideos.length} vidéo(s) coach</span>
-                            </div>
-                          )}
-                          {demoVideos.length > 0 && (
+                          {videoCount > 0 ? (
                             <div className="flex items-center text-sm text-blue-600">
                               <Film className="w-4 h-4 mr-1" />
-                              <span>{demoVideos.length} démonstration(s)</span>
+                              <span>{videoCount} vidéo(s)</span>
                             </div>
-                          )}
-                          {technique.videos.length === 0 && (
+                          ) : (
                             <div className="flex items-center text-sm text-gray-400">
                               <AlertCircle className="w-4 h-4 mr-1" />
                               <span>Aucune vidéo</span>
@@ -335,22 +326,12 @@ export default function VideoManagementPage() {
                         <button
                           onClick={() => {
                             setUploadingTechnique(technique)
-                            setUploadType('COACH')
-                          }}
-                          className="inline-flex items-center px-4 py-2 bg-yellow-500 text-gray-900 font-medium rounded-lg hover:bg-yellow-400 transition-colors"
-                        >
-                          <User className="w-4 h-4 mr-2" />
-                          Ajouter vidéo coach
-                        </button>
-                        <button
-                          onClick={() => {
-                            setUploadingTechnique(technique)
                             setUploadType('DEMONSTRATION')
                           }}
-                          className="inline-flex items-center px-4 py-2 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-400 transition-colors"
+                          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 transition-colors"
                         >
                           <Film className="w-4 h-4 mr-2" />
-                          Ajouter démo
+                          Ajouter une vidéo
                         </button>
                       </div>
                     </div>
@@ -375,7 +356,7 @@ export default function VideoManagementPage() {
           <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {uploadType === 'COACH' ? 'Vidéo du Coach' : 'Vidéo de démonstration'}
+                Ajouter une vidéo
               </h3>
               <button
                 onClick={() => {
@@ -388,39 +369,9 @@ export default function VideoManagementPage() {
               </button>
             </div>
             
-            <div className="mb-4">
+            <div className="mb-6">
               <p className="text-sm text-gray-600 mb-1">Technique</p>
               <p className="font-medium text-gray-900">{uploadingTechnique.name}</p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type de vidéo
-              </label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setUploadType('COACH')}
-                  className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-colors ${
-                    uploadType === 'COACH'
-                      ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <User className="w-5 h-5 mr-2" />
-                  Coach
-                </button>
-                <button
-                  onClick={() => setUploadType('DEMONSTRATION')}
-                  className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-colors ${
-                    uploadType === 'DEMONSTRATION'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Film className="w-5 h-5 mr-2" />
-                  Démo
-                </button>
-              </div>
             </div>
 
             <div className="mb-6">

@@ -6,8 +6,6 @@ import {
   Upload, 
   Video, 
   ChevronRight,
-  User,
-  Film,
   X,
   CheckCircle,
   AlertCircle,
@@ -399,8 +397,7 @@ export default function VideoUploadPage() {
             {techniques.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
                 {techniques.map((technique) => {
-                  const hasCoachVideo = technique.videos.some(v => v.type === 'COACH')
-                  const hasDemoVideo = technique.videos.some(v => v.type === 'DEMONSTRATION')
+                  const videoCount = technique.videos.length
                   
                   return (
                     <button
@@ -424,13 +421,9 @@ export default function VideoUploadPage() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          {hasCoachVideo && (
-                            <Badge variant="warning">Coach</Badge>
-                          )}
-                          {hasDemoVideo && (
-                            <Badge variant="info">Démo</Badge>
-                          )}
-                          {!hasCoachVideo && !hasDemoVideo && (
+                          {videoCount > 0 ? (
+                            <Badge variant="info">{videoCount} vidéo(s)</Badge>
+                          ) : (
                             <Badge variant="default">Nouveau</Badge>
                           )}
                         </div>
@@ -470,47 +463,6 @@ export default function VideoUploadPage() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">Technique sélectionnée</p>
               <p className="font-medium text-gray-900">{selectedTechnique.name}</p>
-            </div>
-
-            {/* Video Type Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Type de vidéo
-              </label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setVideoType('COACH')}
-                  className={`
-                    flex items-center justify-center p-4 rounded-lg border-2 transition-all
-                    ${videoType === 'COACH'
-                      ? 'border-yellow-500 bg-yellow-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                    }
-                  `}
-                >
-                  <User className="w-6 h-6 mr-3 text-yellow-600" />
-                  <div className="text-left">
-                    <div className="font-medium text-gray-900">Coach</div>
-                    <div className="text-xs text-gray-500">Démonstration instructeur</div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setVideoType('DEMONSTRATION')}
-                  className={`
-                    flex items-center justify-center p-4 rounded-lg border-2 transition-all
-                    ${videoType === 'DEMONSTRATION'
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                    }
-                  `}
-                >
-                  <Film className="w-6 h-6 mr-3 text-blue-600" />
-                  <div className="text-left">
-                    <div className="font-medium text-gray-900">Démonstration</div>
-                    <div className="text-xs text-gray-500">Exécution standard</div>
-                  </div>
-                </button>
-              </div>
             </div>
 
             {/* File Upload */}
