@@ -5,9 +5,15 @@ import { NextRequestWithAuth, withAuth } from 'next-auth/middleware'
 export default withAuth(
   async function middleware(req: NextRequestWithAuth) {
     const token = await getToken({ req })
-    
-    // Vérifier si l'utilisateur est admin
-    if (token?.role !== 'ADMIN') {
+    const path = req.nextUrl.pathname
+
+    const isAdmin = token?.role === 'ADMIN'
+    // L'instructeur n'a accès qu'à la gestion des vidéos (pages + API)
+    const isInstructorVideoPath =
+      token?.role === 'INSTRUCTOR' &&
+      (path.startsWith('/admin/videos') || path.startsWith('/api/admin/videos'))
+
+    if (!isAdmin && !isInstructorVideoPath) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     

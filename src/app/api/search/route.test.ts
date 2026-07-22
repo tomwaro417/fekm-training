@@ -44,7 +44,9 @@ describe('GET /api/search', () => {
       },
     ]
 
-    vi.mocked(prisma.technique.findMany).mockResolvedValue(mockTechniques)
+    // Mock partiel : le type Prisma complet exige tous les champs scalaires
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(prisma.technique.findMany).mockResolvedValue(mockTechniques as any)
     vi.mocked(prisma.module.findMany).mockResolvedValue([])
     vi.mocked(prisma.belt.findMany).mockResolvedValue([])
 

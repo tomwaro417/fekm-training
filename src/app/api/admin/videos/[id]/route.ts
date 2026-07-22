@@ -4,8 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { withRateLimit } from '@/lib/rate-limit'
 import { createErrorResponse, logError, logWarning } from '@/lib/error-handler'
-import { unlink } from 'fs/promises'
-import { join } from 'path'
+import { deleteVideoAsset } from '@/lib/video-delete'
 import { z } from 'zod'
 
 // ============================================
@@ -198,6 +197,7 @@ export async function PATCH(
 
 // ============================================
 // DELETE /api/admin/videos/[id] - Supprimer une vidéo
+// Réservé ADMIN et INSTRUCTOR (toutes les vidéos)
 // ============================================
 export async function DELETE(
   request: NextRequest,
@@ -205,54 +205,23 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session || session.user.role !== 'ADMIN') {
+
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'INSTRUCTOR')) {
       return createErrorResponse('UNAUTHORIZED', 401)
     }
 
     const { id } = await params
 
-    // Vérifier que la vidéo existe
-    const video = await prisma.videoAsset.findUnique({
-      where: { id },
-      include: {
-        techniqueLinks: true,
-      },
-    })
+    const deleted = await deleteVideoAsset(id)
 
-    if (!video) {
+    if (!deleted) {
       return createErrorResponse('NOT_FOUND', 404, 'Vidéo non trouvée')
     }
 
-    // Supprimer les liens avec les techniques
-    if (video.techniqueLinks.length > 0) {
-      await prisma.techniqueVideoLink.deleteMany({
-        where: { videoId: id },
-      })
-    }
-
-    // Supprimer le fichier physique
-    try {
-      const filepath = join(process.cwd(), video.path)
-      await unlink(filepath)
-    } catch (fileError) {
-      // Log mais ne pas bloquer si le fichier n'existe pas déjà
-      logWarning('DELETE /api/admin/videos/[id]', 'Fichier non trouvé ou déjà supprimé', {
-        videoId: id,
-        path: video.path,
-        error: fileError,
-      })
-    }
-
-    // Supprimer l'entrée en base
-    await prisma.videoAsset.delete({
-      where: { id },
-    })
-
     logWarning('DELETE /api/admin/videos/[id]', 'Vidéo supprimée', {
       userId: session.user.id,
+      role: session.user.role,
       videoId: id,
-      filename: video.filename,
     })
 
     return NextResponse.json({

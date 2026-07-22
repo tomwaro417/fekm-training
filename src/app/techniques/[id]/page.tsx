@@ -324,13 +324,15 @@ function VideoCard({
   label,
   beltColor,
   showDownload = false,
-  onReplace
+  onReplace,
+  onDelete
 }: {
   video: VideoAsset;
   label: string;
   beltColor: string;
   showDownload?: boolean;
   onReplace?: () => void;
+  onDelete?: () => void;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -468,6 +470,15 @@ function VideoCard({
                 Télécharger
               </button>
             )}
+            {onDelete && (
+              <button
+                onClick={onDelete}
+                className="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4 mr-1.5" />
+                Supprimer
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -495,6 +506,18 @@ function PersonalVideoSlot({
   const [showUploader, setShowUploader] = useState(false);
   // Mapping du slot vers le type attendu par l'interface
   const video = userVideos.find(v => v.slot === type);
+
+  const handleDeleteVideo = async () => {
+    if (!video) return;
+    if (!confirm('Supprimer définitivement cette vidéo ? Cette action est irréversible.')) return;
+    try {
+      const response = await fetch(`/api/videos/${video.video.id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Échec de la suppression');
+      onVideoUploaded();
+    } catch {
+      alert('Erreur lors de la suppression de la vidéo');
+    }
+  };
 
   // Afficher l'uploader si demandé (même si une vidéo existe déjà)
   if (showUploader) {
@@ -531,6 +554,7 @@ function PersonalVideoSlot({
         beltColor={beltColor}
         showDownload={true}
         onReplace={() => setShowUploader(true)}
+        onDelete={handleDeleteVideo}
       />
     );
   }
