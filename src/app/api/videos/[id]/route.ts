@@ -36,7 +36,14 @@ export async function DELETE(
 
     const role = session.user.role
     const isPrivileged = role === 'ADMIN' || role === 'INSTRUCTOR'
-    const isOwner = video.uploadedById === session.user.id
+
+    // Propriétaire = uploader OU élève lié à cette vidéo via UserTechniqueVideo
+    // (certaines anciennes vidéos élèves ont uploadedById NULL)
+    const isOwner =
+      video.uploadedById === session.user.id ||
+      (await prisma.userTechniqueVideo.count({
+        where: { videoId: id, userId: session.user.id },
+      })) > 0
 
     if (!isPrivileged && !isOwner) {
       return createErrorResponse(

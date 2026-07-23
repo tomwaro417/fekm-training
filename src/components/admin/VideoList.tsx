@@ -72,6 +72,7 @@ export function VideoList({
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const formatDuration = (seconds?: number): string => {
     if (!seconds) return '--:--'
@@ -99,11 +100,13 @@ export function VideoList({
   const handleDelete = async (videoId: string) => {
     if (!onDelete) return
     setDeleting(true)
+    setDeleteError(null)
     try {
       await onDelete(videoId)
       setDeleteConfirm(null)
     } catch (error) {
       console.error('Erreur lors de la suppression:', error)
+      setDeleteError('La suppression a échoué. Veuillez réessayer.')
     } finally {
       setDeleting(false)
     }
@@ -283,7 +286,10 @@ export function VideoList({
                   variant="outline"
                   size="sm"
                   className="text-red-600 hover:bg-red-50"
-                  onClick={() => setDeleteConfirm(video.id)}
+                  onClick={() => {
+                    setDeleteConfirm(video.id)
+                    setDeleteError(null)
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -307,6 +313,11 @@ export function VideoList({
             <br />
             Cette action est irréversible.
           </p>
+          {deleteError && (
+            <p className="text-red-600 text-sm mb-4 bg-red-50 px-3 py-2 rounded-lg">
+              {deleteError}
+            </p>
+          )}
           <div className="flex justify-center gap-3">
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Annuler

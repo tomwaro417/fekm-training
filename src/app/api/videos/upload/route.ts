@@ -244,6 +244,7 @@ export async function POST(request: NextRequest) {
           size: videoFile.size,
           path: `uploads/videos/${filename}`,
           thumbnailPath: thumbnailGenerated ? `uploads/thumbnails/${timestamp}.jpg` : null,
+          uploadedById: session.user.id,
         },
       });
       console.log('[Upload] Entrée DB créée:', videoAsset.id);
