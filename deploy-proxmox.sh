@@ -89,7 +89,7 @@ log_info "Déploiement FEKM Training sur Proxmox"
 log_info "VMID: $VMID"
 log_info "IP: $IP_ADDRESS"
 log_info "Gateway: $GATEWAY"
-log_info "Domaine: ${DOMAIN:-'(aucun)'}")
+log_info "Domaine: ${DOMAIN:-'(aucun)'}"
 log_info "Log: $LOG_FILE"
 echo ""
 
@@ -217,6 +217,7 @@ pct exec $VMID -- apt-get install -y \
     python3 \
     python3-pip \
     openssl \
+    ffmpeg \
     2>&1 | tee -a /tmp/apt-install.log || {
     log_error "Échec de l'installation des paquets"
     exit 1
@@ -318,6 +319,21 @@ pct exec $VMID -- su - fekm -c "git clone https://github.com/tomwaro417/fekm-tra
     tar czf - -C /home/tomwaro/.openclaw/workspace/fekm-training . 2>/dev/null | pct exec $VMID -- tar xzf - -C /home/fekm/app
     pct exec $VMID -- chown -R fekm:fekm /home/fekm/app
 }
+
+# Liaison du stockage persistant (vidéos et miniatures)
+# Le code de l'application utilise uploads/videos et uploads/thumbnails.
+# Sans ces liens, les fichiers seraient stockés dans /home/fekm/app et perdus
+# à chaque redéploiement (rm -rf /home/fekm/app).
+log_info "Configuration du stockage persistant pour les uploads..."
+pct exec $VMID -- mkdir -p /var/lib/fekm-training/videos /var/lib/fekm-training/thumbnails
+pct exec $VMID -- chown -R fekm:fekm /var/lib/fekm-training
+pct exec $VMID -- bash -c "
+    mkdir -p /home/fekm/app/uploads
+    rm -rf /home/fekm/app/uploads/videos /home/fekm/app/uploads/thumbnails
+    ln -sf /var/lib/fekm-training/videos /home/fekm/app/uploads/videos
+    ln -sf /var/lib/fekm-training/thumbnails /home/fekm/app/uploads/thumbnails
+    chown -R fekm:fekm /home/fekm/app/uploads
+"
 
 # Création du fichier .env.production
 log_info "Configuration des variables d'environnement..."
