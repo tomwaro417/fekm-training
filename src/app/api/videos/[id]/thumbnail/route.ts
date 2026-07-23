@@ -24,28 +24,19 @@ export async function GET(
 
     const { id } = await params;
 
-    // Vérifier que la vidéo existe et que l'utilisateur y a accès
+    // Vérifier que la vidéo existe
     const video = await prisma.videoAsset.findUnique({
       where: { id },
-      include: {
-        userVideos: {
-          where: {
-            userId: session.user.id,
-          },
-        },
-      },
     });
 
     if (!video) {
       return NextResponse.json({ error: 'Vidéo non trouvée' }, { status: 404 });
     }
 
-    // Vérifier que l'utilisateur a le droit de voir cette vidéo
-    const hasAccess = video.userVideos.length > 0 || video.uploadedById === session.user.id;
-    
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
-    }
+    // Accès : miniature = moins sensible qu'une vidéo. Tout utilisateur authentifié
+    // peut la voir, comme le fait la route de streaming. Cela couvre aussi les
+    // vidéos coach liées aux techniques (TechniqueVideoLink), qui n'ont pas de
+    // UserTechniqueVideo pour les élèves.
 
     // Utiliser le chemin de la miniature depuis la DB ou construire le chemin par défaut
     let thumbnailPath: string;

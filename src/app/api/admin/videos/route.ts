@@ -122,7 +122,7 @@ async function getHandler(request: NextRequest) {
           size: video.size,
           createdAt: video.createdAt,
           status: video.status,
-          thumbnailUrl: video.thumbnailPath,
+          thumbnailUrl: `/api/videos/${video.id}/thumbnail`,
           tags: video.tags || [],
           technique: video.techniqueLinks[0]?.technique || null,
           uploadedBy: video.uploadedBy || { name: 'Inconnu' },

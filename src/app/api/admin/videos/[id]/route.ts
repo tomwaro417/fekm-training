@@ -88,7 +88,7 @@ export async function GET(
           updatedAt: video.updatedAt,
           type: 'COACH',
           status: video.status,
-          thumbnailUrl: video.thumbnailPath,
+          thumbnailUrl: `/api/videos/${video.id}/thumbnail`,
           tags: video.tags || [],
           technique: null,
           uploadedBy: video.uploadedBy || { name: 'Inconnu' },
