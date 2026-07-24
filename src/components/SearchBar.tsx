@@ -27,6 +27,11 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Réinitialiser la sélection quand les résultats changent
+  useEffect(() => {
+    setSelectedIndex(results.length > 0 ? 0 : -1);
+  }, [results]);
+
   // Ouvrir la recherche avec Cmd+K / Ctrl+K
   const openSearch = useCallback(() => {
     setIsOpen(true);
@@ -43,6 +48,20 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
     clearSearch();
   }, [clearSearch]);
 
+  // Sélectionner un résultat
+  const handleSelectResult = useCallback((result: SearchResult) => {
+    router.push(result.url);
+    closeSearch();
+  }, [router, closeSearch]);
+
+  // Sélectionner le résultat actuellement surligné (ou le premier par défaut)
+  const selectCurrentResult = useCallback(() => {
+    const index = selectedIndex >= 0 ? selectedIndex : 0;
+    if (results[index]) {
+      handleSelectResult(results[index]);
+    }
+  }, [results, selectedIndex, handleSelectResult]);
+
   // Navigation clavier dans les résultats
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     switch (event.key) {
@@ -54,26 +73,18 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
         break;
       case 'ArrowUp':
         event.preventDefault();
-        setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
         break;
       case 'Enter':
         event.preventDefault();
-        if (selectedIndex >= 0 && results[selectedIndex]) {
-          handleSelectResult(results[selectedIndex]);
-        }
+        selectCurrentResult();
         break;
       case 'Escape':
         event.preventDefault();
         closeSearch();
         break;
     }
-  }, [results, selectedIndex, closeSearch]);
-
-  // Sélectionner un résultat
-  const handleSelectResult = useCallback((result: SearchResult) => {
-    router.push(result.url);
-    closeSearch();
-  }, [router, closeSearch]);
+  }, [results, selectedIndex, closeSearch, selectCurrentResult]);
 
   // Fermer au clic en dehors
   useEffect(() => {
@@ -157,6 +168,16 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
       {/* Dropdown des résultats */}
       {isOpen && (query.trim() || results.length > 0) && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50 max-h-[60vh] overflow-y-auto">
+          {/* Bouton fermer ( accessible en haut à droite ) */}
+          <div className="flex items-center justify-end px-3 py-2 border-b border-gray-100">
+            <button
+              onClick={closeSearch}
+              className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Fermer la recherche"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
           {/* État de chargement */}
           {isLoading && (
             <div className="flex items-center justify-center py-8">
@@ -259,22 +280,31 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
             </div>
           )}
 
-          {/* Pied de page avec astuce */}
+          {/* Pied de page avec astuces et actions */}
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 opacity-75">
                 <kbd className="px-1.5 py-0.5 bg-white border rounded text-gray-600">↑↓</kbd>
                 <span>naviguer</span>
               </span>
-              <span className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-white border rounded text-gray-600">↵</kbd>
-                <span>sélectionner</span>
-              </span>
             </div>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white border rounded text-gray-600">esc</kbd>
-              <span>fermer</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={selectCurrentResult}
+                disabled={results.length === 0}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-white border border-gray-200 hover:bg-gray-100 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <kbd className="px-1 py-0.5 rounded text-gray-600">↵</kbd>
+                <span>sélectionner</span>
+              </button>
+              <button
+                onClick={closeSearch}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-white border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-colors"
+              >
+                <kbd className="px-1 py-0.5 rounded text-gray-600">esc</kbd>
+                <span>fermer</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
