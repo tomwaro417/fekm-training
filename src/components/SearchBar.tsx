@@ -167,9 +167,9 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
 
       {/* Dropdown des résultats */}
       {isOpen && (query.trim() || results.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50 max-h-[60vh] overflow-y-auto">
-          {/* Bouton fermer ( accessible en haut à droite ) */}
-          <div className="flex items-center justify-end px-3 py-2 border-b border-gray-100">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50 max-h-[60vh] flex flex-col">
+          {/* Header fixe */}
+          <div className="flex-shrink-0 flex items-center justify-end px-3 py-2 border-b border-gray-100">
             <button
               onClick={closeSearch}
               className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
@@ -178,110 +178,114 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
               <X className="w-4 h-4" />
             </button>
           </div>
-          {/* État de chargement */}
-          {isLoading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 text-yellow-500 animate-spin" />
-            </div>
-          )}
 
-          {/* Erreur */}
-          {error && !isLoading && (
-            <div className="px-4 py-6 text-center">
-              <p className="text-red-600 text-sm">{error}</p>
-            </div>
-          )}
+          {/* Contenu scrollable */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {/* État de chargement */}
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 text-yellow-500 animate-spin" />
+              </div>
+            )}
 
-          {/* Aucun résultat */}
-          {!isLoading && !error && query.trim() && results.length === 0 && (
-            <div className="px-4 py-6 text-center">
-              <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">Aucun résultat pour &quot;{query}&quot;</p>
-            </div>
-          )}
+            {/* Erreur */}
+            {error && !isLoading && (
+              <div className="px-4 py-6 text-center">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
 
-          {/* Liste des résultats groupés */}
-          {!isLoading && !error && results.length > 0 && (
-            <div className="py-2">
-              {groupOrder.map((groupType) => {
-                const groupResults = groupedResults[groupType];
-                if (!groupResults || groupResults.length === 0) return null;
+            {/* Aucun résultat */}
+            {!isLoading && !error && query.trim() && results.length === 0 && (
+              <div className="px-4 py-6 text-center">
+                <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">Aucun résultat pour &quot;{query}&quot;</p>
+              </div>
+            )}
 
-                const GroupIcon = groupIcons[groupType];
-                let globalIndex = 0;
-                
-                // Calculer l'index global pour la navigation
-                for (const type of groupOrder) {
-                  if (type === groupType) break;
-                  globalIndex += groupedResults[type]?.length || 0;
-                }
+            {/* Liste des résultats groupés */}
+            {!isLoading && !error && results.length > 0 && (
+              <div className="py-2">
+                {groupOrder.map((groupType) => {
+                  const groupResults = groupedResults[groupType];
+                  if (!groupResults || groupResults.length === 0) return null;
 
-                return (
-                  <div key={groupType} className="mb-2 last:mb-0">
-                    {/* En-tête du groupe */}
-                    <div className="px-4 py-2 flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                      <GroupIcon className="w-4 h-4" />
-                      {groupLabels[groupType]}
-                    </div>
+                  const GroupIcon = groupIcons[groupType];
+                  let globalIndex = 0;
+                  
+                  // Calculer l'index global pour la navigation
+                  for (const type of groupOrder) {
+                    if (type === groupType) break;
+                    globalIndex += groupedResults[type]?.length || 0;
+                  }
 
-                    {/* Résultats du groupe */}
-                    {groupResults.map((result, idx) => {
-                      const currentGlobalIndex = globalIndex + idx;
-                      const isSelected = currentGlobalIndex === selectedIndex;
+                  return (
+                    <div key={groupType} className="mb-2 last:mb-0">
+                      {/* En-tête du groupe */}
+                      <div className="px-4 py-2 flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <GroupIcon className="w-4 h-4" />
+                        {groupLabels[groupType]}
+                      </div>
 
-                      return (
-                        <button
-                          key={result.id}
-                          onClick={() => handleSelectResult(result)}
-                          onMouseEnter={() => setSelectedIndex(currentGlobalIndex)}
-                          className={cn(
-                            'w-full px-4 py-3 flex items-start gap-3 text-left transition-colors',
-                            isSelected ? 'bg-yellow-50' : 'hover:bg-gray-50'
-                          )}
-                        >
-                          {/* Indicateur de couleur pour les ceintures */}
-                          {result.beltColor && (
-                            <div
-                              className="w-3 h-3 rounded-full flex-shrink-0 mt-1"
-                              style={{ backgroundColor: result.beltColor }}
-                            />
-                          )}
-                          
-                          <div className="flex-1 min-w-0">
-                            <div className={cn(
-                              'font-medium truncate',
-                              isSelected ? 'text-yellow-900' : 'text-gray-900'
-                            )}>
-                              {result.name}
-                            </div>
-                            
-                            {/* Description ou métadonnées */}
-                            {(result.description || result.moduleCode || result.beltName) && (
-                              <div className="text-sm text-gray-500 truncate">
-                                {result.description || (
-                                  result.moduleCode && result.beltName
-                                    ? `${result.moduleCode} • ${result.beltName}`
-                                    : result.moduleCode || result.beltName
-                                )}
-                              </div>
+                      {/* Résultats du groupe */}
+                      {groupResults.map((result, idx) => {
+                        const currentGlobalIndex = globalIndex + idx;
+                        const isSelected = currentGlobalIndex === selectedIndex;
+
+                        return (
+                          <button
+                            key={result.id}
+                            onClick={() => handleSelectResult(result)}
+                            onMouseEnter={() => setSelectedIndex(currentGlobalIndex)}
+                            className={cn(
+                              'w-full px-4 py-3 flex items-start gap-3 text-left transition-colors',
+                              isSelected ? 'bg-yellow-50' : 'hover:bg-gray-50'
                             )}
-                          </div>
+                          >
+                            {/* Indicateur de couleur pour les ceintures */}
+                            {result.beltColor && (
+                              <div
+                                className="w-3 h-3 rounded-full flex-shrink-0 mt-1"
+                                style={{ backgroundColor: result.beltColor }}
+                              />
+                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className={cn(
+                                'font-medium truncate',
+                                isSelected ? 'text-yellow-900' : 'text-gray-900'
+                              )}>
+                                {result.name}
+                              </div>
+                              
+                              {/* Description ou métadonnées */}
+                              {(result.description || result.moduleCode || result.beltName) && (
+                                <div className="text-sm text-gray-500 truncate">
+                                  {result.description || (
+                                    result.moduleCode && result.beltName
+                                      ? `${result.moduleCode} • ${result.beltName}`
+                                      : result.moduleCode || result.beltName
+                                  )}
+                                </div>
+                              )}
+                            </div>
 
-                          {/* Flèche pour l'élément sélectionné */}
-                          {isSelected && (
-                            <div className="text-yellow-600 text-sm">↵</div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                            {/* Flèche pour l'élément sélectionné */}
+                            {isSelected && (
+                              <div className="text-yellow-600 text-sm">↵</div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-          {/* Pied de page avec astuces et actions */}
-          <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
+          {/* Footer fixe */}
+          <div className="flex-shrink-0 px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 opacity-75">
                 <kbd className="px-1.5 py-0.5 bg-white border rounded text-gray-600">↑↓</kbd>
