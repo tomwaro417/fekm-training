@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, Loader2, Trophy, BookOpen, Target, Command } from 'lucide-react';
+import { Search, X, Loader2, Trophy, BookOpen, Target } from 'lucide-react';
 import { useSearch, useKeyboardShortcut, type SearchResult } from '@/hooks/useSearch';
 import { cn } from '@/lib/utils';
 
@@ -148,8 +148,7 @@ export function SearchBar({ className, placeholder = 'Rechercher...' }: SearchBa
         ) : (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1">
             <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-500 bg-gray-200 rounded">
-              <Command className="w-3 h-3 mr-0.5" />
-              K
+              Ctrl K
             </kbd>
           </div>
         )}
@@ -306,8 +305,7 @@ export function SearchTrigger({ className }: SearchTriggerProps) {
         <Search className="w-5 h-5" />
         <span className="hidden lg:inline text-sm">Rechercher</span>
         <kbd className="hidden xl:inline-flex items-center px-1.5 py-0.5 text-xs font-medium text-gray-400 bg-gray-100 rounded">
-          <Command className="w-3 h-3 mr-0.5" />
-          K
+          Ctrl K
         </kbd>
       </button>
 
