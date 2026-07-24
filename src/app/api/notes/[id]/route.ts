@@ -7,7 +7,7 @@ import { idSchema } from '@/lib/validation';
 import { createErrorResponse, handleZodError, logError, logWarning } from '@/lib/error-handler';
 import { ZodError } from 'zod';
 
-// DELETE /api/notes/[id] - Supprimer une note
+// DELETE /api/notes/[id] - Supprimer une note personnelle
 async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -21,11 +21,11 @@ async function deleteHandler(
 
     const userId = session.user.id;
     const { id } = await params;
-    
+
     const validatedId = idSchema.parse(id);
 
     // Vérifier que la note appartient bien à l'utilisateur
-    const note = await prisma.userTechniqueProgress.findFirst({
+    const note = await prisma.userNote.findFirst({
       where: {
         id: validatedId,
         userId,
@@ -37,7 +37,7 @@ async function deleteHandler(
     }
 
     // Supprimer la note
-    await prisma.userTechniqueProgress.delete({
+    await prisma.userNote.delete({
       where: { id: validatedId },
     });
 
@@ -46,7 +46,7 @@ async function deleteHandler(
     if (error instanceof ZodError) {
       return handleZodError(error);
     }
-    
+
     logError('DELETE /api/notes/[id]', error);
     return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error);
   }

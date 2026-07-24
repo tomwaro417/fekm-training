@@ -23,12 +23,13 @@ async function getHandler(request: NextRequest) {
     // Si techniqueId est fourni, retourner la note spécifique
     if (techniqueId) {
       const validatedTechniqueId = idSchema.parse(techniqueId);
-      
-      const note = await prisma.userTechniqueProgress.findFirst({
+
+      const note = await prisma.userNote.findUnique({
         where: {
-          userId,
-          techniqueId: validatedTechniqueId,
-          notes: { not: null },
+          userId_techniqueId: {
+            userId,
+            techniqueId: validatedTechniqueId,
+          },
         },
         include: {
           technique: {
@@ -45,31 +46,18 @@ async function getHandler(request: NextRequest) {
         },
       });
 
-      if (!note || !note.notes) {
+      if (!note) {
         return NextResponse.json({ note: null });
       }
 
       return NextResponse.json({
-        note: {
-          id: note.id,
-          techniqueId: note.techniqueId,
-          techniqueName: note.technique.name,
-          moduleCode: note.technique.module.code,
-          beltName: note.technique.module.belt.name,
-          beltColor: note.technique.module.belt.color,
-          content: note.notes,
-          createdAt: note.createdAt.toISOString(),
-          updatedAt: note.lastUpdated.toISOString(),
-        },
+        note: formatNote(note),
       });
     }
 
     // Sinon, retourner toutes les notes de l'utilisateur
-    const notes = await prisma.userTechniqueProgress.findMany({
-      where: {
-        userId,
-        notes: { not: null },
-      },
+    const notes = await prisma.userNote.findMany({
+      where: { userId },
       include: {
         technique: {
           include: {
@@ -83,33 +71,23 @@ async function getHandler(request: NextRequest) {
           },
         },
       },
-      orderBy: { lastUpdated: 'desc' },
+      orderBy: { updatedAt: 'desc' },
     });
 
-    const formattedNotes = notes.map((note) => ({
-      id: note.id,
-      techniqueId: note.techniqueId,
-      techniqueName: note.technique.name,
-      moduleCode: note.technique.module.code,
-      beltName: note.technique.module.belt.name,
-      beltColor: note.technique.module.belt.color,
-      content: note.notes || '',
-      createdAt: note.createdAt.toISOString(),
-      updatedAt: note.lastUpdated.toISOString(),
-    }));
-
-    return NextResponse.json({ notes: formattedNotes });
+    return NextResponse.json({
+      notes: notes.map(formatNote),
+    });
   } catch (error) {
     if (error instanceof ZodError) {
       return handleZodError(error);
     }
-    
+
     logError('GET /api/notes', error);
     return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error);
   }
 }
 
-// POST /api/notes - Créer ou mettre à jour une note
+// POST /api/notes - Créer ou mettre à jour une note personnelle
 async function postHandler(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -120,7 +98,7 @@ async function postHandler(request: NextRequest) {
 
     const userId = session.user.id;
     const body = await request.json();
-    
+
     const validatedData = noteSchema.parse(body);
     const { techniqueId, content } = validatedData;
 
@@ -142,8 +120,8 @@ async function postHandler(request: NextRequest) {
       return createErrorResponse('NOT_FOUND', 404, 'Technique non trouvée');
     }
 
-    // Upsert la progression avec la note
-    const note = await prisma.userTechniqueProgress.upsert({
+    // Upsert dans la table UserNote (séparée de la progression)
+    const note = await prisma.userNote.upsert({
       where: {
         userId_techniqueId: {
           userId,
@@ -151,13 +129,12 @@ async function postHandler(request: NextRequest) {
         },
       },
       update: {
-        notes: content,
+        content,
       },
       create: {
         userId,
         techniqueId,
-        notes: content,
-        level: 'NON_ACQUIS',
+        content,
       },
       include: {
         technique: {
@@ -174,25 +151,49 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      id: note.id,
-      techniqueId: note.techniqueId,
-      techniqueName: note.technique.name,
-      moduleCode: note.technique.module.code,
-      beltName: note.technique.module.belt.name,
-      beltColor: note.technique.module.belt.color,
-      content: note.notes || '',
-      createdAt: note.createdAt.toISOString(),
-      updatedAt: note.lastUpdated.toISOString(),
-    });
+    return NextResponse.json(formatNote(note));
   } catch (error) {
     if (error instanceof ZodError) {
       return handleZodError(error);
     }
-    
+
     logError('POST /api/notes', error);
     return createErrorResponse('INTERNAL_ERROR', 500, undefined, error as Error);
   }
+}
+
+/**
+ * Formate une UserNote pour le client.
+ */
+function formatNote(note: {
+  id: string;
+  userId: string;
+  techniqueId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  technique: {
+    name: string;
+    module: {
+      code: string;
+      belt: {
+        name: string;
+        color: string;
+      };
+    };
+  };
+}) {
+  return {
+    id: note.id,
+    techniqueId: note.techniqueId,
+    techniqueName: note.technique.name,
+    moduleCode: note.technique.module.code,
+    beltName: note.technique.module.belt.name,
+    beltColor: note.technique.module.belt.color,
+    content: note.content,
+    createdAt: note.createdAt.toISOString(),
+    updatedAt: note.updatedAt.toISOString(),
+  };
 }
 
 // Export avec rate limiting
