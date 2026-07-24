@@ -1,0 +1,98 @@
+2026-07-21 14:49:08 +00:00: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/tomwaro/.openclaw/workspace/pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /home/tomwaro/.openclaw/workspace/fekm-training/pnpm-lock.yaml
+
+2026-07-22 14:42:46 +00:00: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/tomwaro/.openclaw/workspace/pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /home/tomwaro/.openclaw/workspace/fekm-training/pnpm-lock.yaml
+
+2026-07-22 14:47:31 +00:00: [DELETE /api/videos/[id]] Vidéo supprimée {
+  userId: 'cmmbmy5as009tff6dsx48neqo',
+  role: 'ADMIN',
+  videoId: 'cmmg05y0z0000i9318zlkmv4l',
+  filename: 'cmmbmy561009rff6dps3lw6pa_cmmbmy4rt0005ff6duu04ami8_DEBUTANT_1772868557487.mp4'
+}
+2026-07-22 14:47:40 +00:00: [DELETE /api/videos/[id]] Vidéo supprimée {
+  userId: 'cmmbmy5as009tff6dsx48neqo',
+  role: 'ADMIN',
+  videoId: 'cmmg076v30008i931y6u92sp4',
+  filename: 'cmmbmy561009rff6dps3lw6pa_cmmbmy4rt0005ff6duu04ami8_PROGRESSION_1772868615612.mp4'
+}
+2026-07-22 14:47:45 +00:00: [DELETE /api/videos/[id]] Vidéo supprimée {
+  userId: 'cmmbmy5as009tff6dsx48neqo',
+  role: 'ADMIN',
+  videoId: 'cmmgcivmg0000fv31zovizw58',
+  filename: 'cmmdgxh3n0000wg54ugdc35u2_cmmbmy4rt0005ff6duu04ami8_DEBUTANT_1772889316502.webm'
+}
+2026-07-22 14:50:26 +00:00: [GET /api/techniques/[id]] Tentative d'accès non autorisé { ip: '192.168.1.30' }
+2026-07-22 14:52:43 +00:00: [EmailService.sendWelcomeEmail] {
+  message: 'Configuration SMTP incomplète. Variables requises: SMTP_HOST, SMTP_USER, SMTP_PASSWORD',
+  stack: 'Error: Configuration SMTP incomplète. Variables requises: SMTP_HOST, SMTP_USER, SMTP_PASSWORD\n' +
+    '    at S (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:1:218317)\n' +
+    '    at C (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:1:218649)\n' +
+    '    at z (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:1326)\n' +
+    '    at U (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:3867)\n' +
+    '    at async rW.do (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:5:20169)\n' +
+    '    at async rW.handle (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:5:24949)\n' +
+    '    at async c (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:10199)\n' +
+    '    at async rW.handleResponse (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:1:104149)\n' +
+    '    at async p (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:11240)\n' +
+    '    at async Module.J (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:12318)'
+}
+2026-07-22 14:52:43 +00:00: [sendWelcomeEmailToUser] {
+  message: 'Configuration SMTP incomplète. Variables requises: SMTP_HOST, SMTP_USER, SMTP_PASSWORD',
+  stack: 'Error: Configuration SMTP incomplète. Variables requises: SMTP_HOST, SMTP_USER, SMTP_PASSWORD\n' +
+    '    at z (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:1430)\n' +
+    '    at async U (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:3861)\n' +
+    '    at async rW.do (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:5:20169)\n' +
+    '    at async rW.handle (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:5:24949)\n' +
+    '    at async c (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:10199)\n' +
+    '    at async rW.handleResponse (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.prod.js:1:104149)\n' +
+    '    at async p (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:11240)\n' +
+    '    at async Module.J (/home/tomwaro/.openclaw/workspace/fekm-training/.next/server/chunks/[root-of-the-server]__de53c98b._.js:236:12318)\n' +
+    '    at async NextNodeServer.renderToResponseWithComponentsImpl (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/server/base-server.js:1442:9)\n' +
+    '    at async NextNodeServer.renderPageComponent (/home/tomwaro/.openclaw/workspace/fekm-training/node_modules/.pnpm/next@16.1.6_@babel+core@7.29.0_@playwright+test@1.58.2_react-dom@19.2.3_react@19.2.3__react@19.2.3/node_modules/next/dist/server/base-server.js:1494:24)'
+}
+2026-07-22 14:52:43 +00:00: [POST /api/admin/users] Échec envoi email de bienvenue {
+  userId: 'cmrw7bwvk0001qw828biaxcca',
+  email: 'johndraper@fekm.fr',
+  error: 'Configuration SMTP incomplète. Variables requises: SMTP_HOST, SMTP_USER, SMTP_PASSWORD'
+}
+2026-07-22 14:52:43 +00:00: [POST /api/admin/users] Utilisateur créé {
+  adminId: 'cmmbmy5as009tff6dsx48neqo',
+  newUserId: 'cmrw7bwvk0001qw828biaxcca',
+  email: 'johndraper@fekm.fr',
+  role: 'STUDENT'
+}
+2026-07-22 14:56:06 +00:00: [API ERROR] FORBIDDEN: Vous ne pouvez supprimer que vos propres vidéos
+2026-07-22 14:56:18 +00:00: [API ERROR] FORBIDDEN: Vous ne pouvez supprimer que vos propres vidéos
+2026-07-22 14:56:40 +00:00: [API ERROR] FORBIDDEN: Vous ne pouvez supprimer que vos propres vidéos
+2026-07-22 14:56:46 +00:00: [API ERROR] FORBIDDEN: Vous ne pouvez supprimer que vos propres vidéos
+2026-07-22 14:56:50 +00:00: [GET /api/techniques/[id]] Tentative d'accès non autorisé { ip: '192.168.1.30' }
+2026-07-23 02:41:42 +00:00: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/tomwaro/.openclaw/workspace/pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /home/tomwaro/.openclaw/workspace/fekm-training/pnpm-lock.yaml
+
+2026-07-23 02:51:25 +00:00: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/tomwaro/.openclaw/workspace/pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /home/tomwaro/.openclaw/workspace/fekm-training/pnpm-lock.yaml
+
+2026-07-24 05:56:00 +00:00: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/tomwaro/.openclaw/workspace/pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * /home/tomwaro/.openclaw/workspace/fekm-training/pnpm-lock.yaml
+

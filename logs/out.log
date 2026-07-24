@@ -9,3 +9,150 @@
 ✓ Starting...
 ✓ Ready in 804ms
  ELIFECYCLE  Command failed.
+2026-07-21 14:49:07 +00:00: ▲ Next.js 16.1.6
+2026-07-21 14:49:07 +00:00: - Local:         http://localhost:3000
+2026-07-21 14:49:07 +00:00: - Network:       http://0.0.0.0:3000
+2026-07-21 14:49:07 +00:00: 
+2026-07-21 14:49:07 +00:00: ✓ Starting...
+2026-07-21 14:49:08 +00:00: ✓ Ready in 485ms
+2026-07-21 15:38:30 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4s0000bff6dw7kgtlxd
+2026-07-21 15:38:30 +00:00: API - Détail vidéos: []
+2026-07-21 15:45:25 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4z5007xff6djnbnrlk8
+2026-07-21 15:45:25 +00:00: API - Détail vidéos: []
+2026-07-22 14:42:46 +00:00: ▲ Next.js 16.1.6
+2026-07-22 14:42:46 +00:00: - Local:         http://localhost:3000
+2026-07-22 14:42:46 +00:00: - Network:       http://0.0.0.0:3000
+2026-07-22 14:42:46 +00:00: 
+2026-07-22 14:42:46 +00:00: ✓ Starting...
+2026-07-22 14:42:46 +00:00: ✓ Ready in 484ms
+2026-07-22 14:47:06 +00:00: API - Vidéos trouvées: 3 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:47:06 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmmg05y1b0002i931h5hil53a",
+    "slot": "DEBUTANT",
+    "userId": "cmmbmy561009rff6dps3lw6pa",
+    "videoId": "cmmg05y0z0000i9318zlkmv4l"
+  },
+  {
+    "id": "cmmg076vd000ai931bupjex70",
+    "slot": "PROGRESSION",
+    "userId": "cmmbmy561009rff6dps3lw6pa",
+    "videoId": "cmmg076v30008i931y6u92sp4"
+  },
+  {
+    "id": "cmmgcivmq0002fv31qagz3mw3",
+    "slot": "DEBUTANT",
+    "userId": "cmmdgxh3n0000wg54ugdc35u2",
+    "videoId": "cmmgcivmg0000fv31zovizw58"
+  }
+]
+2026-07-22 14:47:31 +00:00: API - Vidéos trouvées: 2 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:47:31 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmmg076vd000ai931bupjex70",
+    "slot": "PROGRESSION",
+    "userId": "cmmbmy561009rff6dps3lw6pa",
+    "videoId": "cmmg076v30008i931y6u92sp4"
+  },
+  {
+    "id": "cmmgcivmq0002fv31qagz3mw3",
+    "slot": "DEBUTANT",
+    "userId": "cmmdgxh3n0000wg54ugdc35u2",
+    "videoId": "cmmgcivmg0000fv31zovizw58"
+  }
+]
+2026-07-22 14:47:40 +00:00: API - Vidéos trouvées: 1 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:47:40 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmmgcivmq0002fv31qagz3mw3",
+    "slot": "DEBUTANT",
+    "userId": "cmmdgxh3n0000wg54ugdc35u2",
+    "videoId": "cmmgcivmg0000fv31zovizw58"
+  }
+]
+2026-07-22 14:47:45 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:47:45 +00:00: API - Détail vidéos: []
+2026-07-22 14:48:58 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:48:58 +00:00: API - Détail vidéos: []
+2026-07-22 14:50:04 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:50:04 +00:00: API - Détail vidéos: []
+2026-07-22 14:53:35 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:53:35 +00:00: API - Détail vidéos: []
+2026-07-22 14:55:20 +00:00: API - Vidéos trouvées: 0 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:55:20 +00:00: API - Détail vidéos: []
+2026-07-22 14:55:40 +00:00: [Upload] Démarrage upload: {
+  userId: 'cmrw7bwvk0001qw828biaxcca',
+  name: '1000017925.mp4',
+  type: 'video/mp4',
+  size: '6MB',
+  techniqueId: 'cmmbmy4rt0005ff6duu04ami8',
+  slot: 'DEBUTANT'
+}
+2026-07-22 14:55:40 +00:00: [Upload] Fichier sauvegardé: /home/tomwaro/.openclaw/workspace/fekm-training/uploads/videos/cmrw7bwvk0001qw828biaxcca_cmmbmy4rt0005ff6duu04ami8_DEBUTANT_1784732140480.mp4 (5971534 bytes)
+2026-07-22 14:55:40 +00:00: [Thumbnail] Génération miniature: /home/tomwaro/.openclaw/workspace/fekm-training/uploads/videos/cmrw7bwvk0001qw828biaxcca_cmmbmy4rt0005ff6duu04ami8_DEBUTANT_1784732140480.mp4
+2026-07-22 14:55:40 +00:00: [Thumbnail] Miniature générée: /home/tomwaro/.openclaw/workspace/fekm-training/uploads/thumbnails/1784732140480.jpg
+2026-07-22 14:55:40 +00:00: [Upload] Entrée DB créée: cmrw7fpdx0002qw82favnwsl9
+2026-07-22 14:55:40 +00:00: [Upload] Lien technique créé/mis à jour
+2026-07-22 14:55:40 +00:00: API - Vidéos trouvées: 1 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:55:40 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmrw7fpdz0004qw82b64z2bk1",
+    "slot": "DEBUTANT",
+    "userId": "cmrw7bwvk0001qw828biaxcca",
+    "videoId": "cmrw7fpdx0002qw82favnwsl9"
+  }
+]
+2026-07-22 14:55:41 +00:00: API - Vidéos trouvées: 1 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:55:41 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmrw7fpdz0004qw82b64z2bk1",
+    "slot": "DEBUTANT",
+    "userId": "cmrw7bwvk0001qw828biaxcca",
+    "videoId": "cmrw7fpdx0002qw82favnwsl9"
+  }
+]
+2026-07-22 14:56:00 +00:00: API - Vidéos trouvées: 1 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:56:00 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmrw7fpdz0004qw82b64z2bk1",
+    "slot": "DEBUTANT",
+    "userId": "cmrw7bwvk0001qw828biaxcca",
+    "videoId": "cmrw7fpdx0002qw82favnwsl9"
+  }
+]
+2026-07-22 14:56:35 +00:00: API - Vidéos trouvées: 1 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:56:35 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmrw7fpdz0004qw82b64z2bk1",
+    "slot": "DEBUTANT",
+    "userId": "cmrw7bwvk0001qw828biaxcca",
+    "videoId": "cmrw7fpdx0002qw82favnwsl9"
+  }
+]
+2026-07-22 14:59:13 +00:00: API - Vidéos trouvées: 1 pour technique: cmmbmy4rt0005ff6duu04ami8
+2026-07-22 14:59:13 +00:00: API - Détail vidéos: [
+  {
+    "id": "cmrw7fpdz0004qw82b64z2bk1",
+    "slot": "DEBUTANT",
+    "userId": "cmrw7bwvk0001qw828biaxcca",
+    "videoId": "cmrw7fpdx0002qw82favnwsl9"
+  }
+]
+2026-07-23 02:41:42 +00:00: ▲ Next.js 16.1.6
+2026-07-23 02:41:42 +00:00: - Local:         http://localhost:3000
+2026-07-23 02:41:42 +00:00: - Network:       http://0.0.0.0:3000
+2026-07-23 02:41:42 +00:00: 
+2026-07-23 02:41:42 +00:00: ✓ Starting...
+2026-07-23 02:41:42 +00:00: ✓ Ready in 493ms
+2026-07-23 02:51:25 +00:00: ▲ Next.js 16.1.6
+2026-07-23 02:51:25 +00:00: - Local:         http://localhost:3000
+2026-07-23 02:51:25 +00:00: - Network:       http://0.0.0.0:3000
+2026-07-23 02:51:25 +00:00: 
+2026-07-23 02:51:25 +00:00: ✓ Starting...
+2026-07-23 02:51:25 +00:00: ✓ Ready in 481ms
+2026-07-24 05:56:00 +00:00: ▲ Next.js 16.1.6
+2026-07-24 05:56:00 +00:00: - Local:         http://localhost:3000
+2026-07-24 05:56:00 +00:00: - Network:       http://0.0.0.0:3000
+2026-07-24 05:56:00 +00:00: 
+2026-07-24 05:56:00 +00:00: ✓ Starting...
+2026-07-24 05:56:00 +00:00: ✓ Ready in 502ms
