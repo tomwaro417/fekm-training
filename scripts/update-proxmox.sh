@@ -122,13 +122,23 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 7. Prisma (generate + db push si schéma modifié)
+# 7. Prisma (generate + migrate deploy si schéma modifié)
 # -----------------------------------------------------------------------------
-if echo "$CHANGED" | grep -q "prisma/schema.prisma"; then
-  log "Schéma Prisma modifié → generate + db push"
-  lxc_fekm "export PATH=/usr/local/bin:/usr/local/share/pnpm:/usr/bin:\$PATH && export DATABASE_URL='${DB_URL}' && cd ${APP_DIR} && pnpm prisma generate && pnpm prisma db push"
+if echo "$CHANGED" | grep -q "prisma/schema.prisma\|prisma/migrations"; then
+  log "Schéma Prisma ou migrations modifiés → generate + migrate deploy"
+  if ! lxc_fekm "export PATH=/usr/local/bin:/usr/local/share/pnpm:/usr/bin:\$PATH && export DATABASE_URL='${DB_URL}' && cd ${APP_DIR} && pnpm prisma generate && pnpm prisma migrate deploy"; then
+    err "❌ Échec des migrations Prisma → rollback"
+    lxc_run "
+      rm -rf ${APP_DIR}/.next
+      mv ${APP_DIR}/.next.bak ${APP_DIR}/.next
+      systemctl restart ${SERVICE}
+    "
+    err "Rollback effectué sur le build précédent."
+    err "Backup DB disponible : ${BACKUP_FILE}"
+    exit 1
+  fi
 else
-  log "Schéma Prisma inchangé — db push sauté"
+  log "Schéma Prisma inchangé — migrate deploy sauté"
 fi
 
 # -----------------------------------------------------------------------------

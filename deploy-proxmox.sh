@@ -391,15 +391,15 @@ pct exec $VMID -- bash -c "
     exit 1
 }
 
-# Application du schéma Prisma
-log_info "Application du schéma Prisma..."
+# Application des migrations Prisma
+log_info "Application des migrations Prisma..."
 pct exec $VMID -- bash -c "
     export PATH=/usr/local/bin:/usr/local/share/pnpm:/usr/bin:\$PATH
     export DATABASE_URL=postgresql://fekm_user:${DB_PASSWORD}@localhost:5432/fekm_training
     cd /home/fekm/app
-    su - fekm -c 'export PATH=/usr/local/bin:/usr/local/share/pnpm:/usr/bin:\$PATH && export DATABASE_URL=postgresql://fekm_user:${DB_PASSWORD}@localhost:5432/fekm_training && pnpm prisma db push --accept-data-loss'
+    su - fekm -c 'export PATH=/usr/local/bin:/usr/local/share/pnpm:/usr/bin:\$PATH && export DATABASE_URL=postgresql://fekm_user:${DB_PASSWORD}@localhost:5432/fekm_training && pnpm prisma migrate deploy'
 " || {
-    log_error "Échec de l'application du schéma"
+    log_error "Échec de l'application des migrations Prisma"
     exit 1
 }
 
