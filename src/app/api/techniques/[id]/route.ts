@@ -65,18 +65,16 @@ async function getHandler(
       return createErrorResponse('NOT_FOUND', 404)
     }
 
-    // Récupérer TOUTES les vidéos personnelles de cette technique (pour debug)
+    // Récupérer UNIQUEMENT les vidéos personnelles de l'utilisateur connecté
     const userVideos = await prisma.userTechniqueVideo.findMany({
       where: {
         techniqueId: validatedId,
+        userId,
       },
       include: {
         video: true,
       },
     })
-    
-    console.log('API - Vidéos trouvées:', userVideos.length, 'pour technique:', validatedId)
-    console.log('API - Détail vidéos:', JSON.stringify(userVideos.map(v => ({ id: v.id, slot: v.slot, userId: v.userId, videoId: v.videoId })), null, 2))
 
     // Ajouter l'URL de streaming et de miniature aux vidéos
     const userVideosWithUrl = userVideos.map(uv => ({
